@@ -4,14 +4,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Log {
+public class LogEntity {
     private int id;
     private String logType;
     private String logMessage;
     private Timestamp createdAt;
 
     // Constructor
-    public Log(int logId, String logType, String logMessage, Timestamp createdAt) {
+    public LogEntity(int logId, String logType, String logMessage, Timestamp createdAt) {
         this.id = logId;
         this.logType = logType;
         this.logMessage = logMessage;
@@ -33,12 +33,12 @@ public class Log {
     }
 
     // Find all log
-    public static List<Log> findAll(Connection conn) throws SQLException {
-        List<Log> log = new ArrayList<>();
+    public static List<LogEntity> findAll(Connection conn) throws SQLException {
+        List<LogEntity> log = new ArrayList<>();
         String sql = "SELECT * FROM log";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                log.add(new Log(
+                log.add(new LogEntity(
                         rs.getInt("LogID"),
                         rs.getString("LogType"),
                         rs.getString("LogMessage"),

@@ -4,27 +4,27 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrderProduct {
+public class OrderProductEntity {
     private int id;
     private int product_id;
     private int quantity;
 
     // Constructor
-    public OrderProduct(int orderId, int productId, int quantity) {
+    public OrderProductEntity(int orderId, int productId, int quantity) {
         this.id = orderId;
         this.product_id = productId;
         this.quantity = quantity;
     }
 
     // Find by order_id and product_id
-    public static OrderProduct findById(int orderId, int productId, Connection conn) throws SQLException {
+    public static OrderProductEntity findById(int orderId, int productId, Connection conn) throws SQLException {
         String sql = "SELECT * FROM orderProducts WHERE order_id = ? AND product_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, orderId);
             stmt.setInt(2, productId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new OrderProduct(
+                return new OrderProductEntity(
                         rs.getInt("order_id"),
                         rs.getInt("product_id"),
                         rs.getInt("Quantity")
@@ -63,12 +63,12 @@ public class OrderProduct {
     }
 
     // Get all orderProducts
-    public static List<OrderProduct> findAll(Connection conn) throws SQLException {
-        List<OrderProduct> orderProducts = new ArrayList<>();
+    public static List<OrderProductEntity> findAll(Connection conn) throws SQLException {
+        List<OrderProductEntity> orderProducts = new ArrayList<>();
         String sql = "SELECT * FROM orderProducts";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                orderProducts.add(new OrderProduct(
+                orderProducts.add(new OrderProductEntity(
                         rs.getInt("order_id"),
                         rs.getInt("product_id"),
                         rs.getInt("Quantity")

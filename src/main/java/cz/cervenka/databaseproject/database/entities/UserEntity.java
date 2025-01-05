@@ -4,14 +4,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User {
+public class UserEntity {
     private int userId;
     private String name;
     private String email;
     private boolean isActive;
 
     // Konstruktor
-    public User(int userId, String name, String email, boolean isActive) {
+    public UserEntity(int userId, String name, String email, boolean isActive) {
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -19,13 +19,13 @@ public class User {
     }
 
     // Načtení uživatele podle ID
-    public static User findById(int id, Connection conn) throws SQLException {
+    public static UserEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT * FROM user WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return new User(
+                return new UserEntity(
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("email"),

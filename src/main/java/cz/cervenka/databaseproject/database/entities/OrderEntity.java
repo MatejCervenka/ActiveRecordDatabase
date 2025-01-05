@@ -4,14 +4,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Order {
+public class OrderEntity {
     private int id;
     private int user_id;
     private Timestamp orderDate;
     private double total;
 
     // Constructor
-    public Order(int id, int userId, Timestamp orderDate, double total) {
+    public OrderEntity(int id, int userId, Timestamp orderDate, double total) {
         this.id = id;
         this.user_id = userId;
         this.orderDate = orderDate;
@@ -19,13 +19,13 @@ public class Order {
     }
 
     // Find by ID
-    public static Order findById(int id, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM order WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
+    public static OrderEntity findById(int id, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM [order] WHERE id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            ResultSet rs = statement.executeQuery();
             if (rs.next()) {
-                return new Order(
+                return new OrderEntity(
                         rs.getInt("id"),
                         rs.getInt("UserID"),
                         rs.getTimestamp("OrderDate"),
@@ -39,23 +39,23 @@ public class Order {
     // Save or update
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
-            String sql = "INSERT INTO order (UserID, Total) VALUES (?, ?)";
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setInt(1, this.user_id);
-                stmt.setDouble(2, this.total);
-                stmt.executeUpdate();
-                ResultSet keys = stmt.getGeneratedKeys();
+            String sql = "INSERT INTO [order] (user_id, total) VALUES (?, ?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setInt(1, this.user_id);
+                statement.setDouble(2, this.total);
+                statement.executeUpdate();
+                ResultSet keys = statement.getGeneratedKeys();
                 if (keys.next()) {
                     this.id = keys.getInt(1);
                 }
             }
         } else {
-            String sql = "UPDATE order SET UserID = ?, Total = ? WHERE id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, this.user_id);
-                stmt.setDouble(2, this.total);
-                stmt.setInt(3, this.id);
-                stmt.executeUpdate();
+            String sql = "UPDATE [order] SET id = ?, Total = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, this.user_id);
+                statement.setDouble(2, this.total);
+                statement.setInt(3, this.id);
+                statement.executeUpdate();
             }
         }
     }
@@ -63,21 +63,21 @@ public class Order {
     // Delete
     public void delete(Connection conn) throws SQLException {
         if (this.id != 0) {
-            String sql = "DELETE FROM order WHERE id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, this.id);
-                stmt.executeUpdate();
+            String sql = "DELETE FROM [order] WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, this.id);
+                statement.executeUpdate();
             }
         }
     }
 
     // Get all order
-    public static List<Order> findAll(Connection conn) throws SQLException {
-        List<Order> order = new ArrayList<>();
-        String sql = "SELECT * FROM order";
-        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+    public static List<OrderEntity> findAll(Connection conn) throws SQLException {
+        List<OrderEntity> order = new ArrayList<>();
+        String sql = "SELECT * FROM [order]";
+        try (Statement statement = conn.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                order.add(new Order(
+                order.add(new OrderEntity(
                         rs.getInt("id"),
                         rs.getInt("UserID"),
                         rs.getTimestamp("OrderDate"),
@@ -89,7 +89,7 @@ public class Order {
     }
 
     // Getters and Setters
-    public int getid() {
+    public int getId() {
         return id;
     }
 
