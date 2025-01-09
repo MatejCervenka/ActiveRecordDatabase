@@ -1,5 +1,6 @@
 package cz.cervenka.databaseproject.controllers;
 
+import cz.cervenka.databaseproject.database.entities.CategoryEntity;
 import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,25 +19,23 @@ public class ProductController {
     @Autowired
     private DatabaseConnection dbConnection;
 
-
     @GetMapping
-    public String listProducts(Model model) throws SQLException {
+    public String listProducts(Model model) {
         try (Connection conn = dbConnection.getConnection()) {
             List<ProductEntity> products = ProductEntity.getAllWithCategoryNames(conn);
-            System.out.println("Fetched Products: " + products.size());
+            List<CategoryEntity> categories = CategoryEntity.getAll(conn);
             model.addAttribute("products", products);
+            model.addAttribute("categories", categories);
+            model.addAttribute("editProduct", new ProductEntity());
+            model.addAttribute("newProduct", new ProductEntity());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return "products";
     }
 
-    @GetMapping("/add")
-    public String showAddProductForm(Model model) {
-        model.addAttribute("product", new ProductEntity());
-        return "addProduct";
-    }
-
     @PostMapping("/add")
-    public String addProduct(@ModelAttribute ProductEntity product) throws SQLException {
+    public String addProduct(@ModelAttribute("newProduct") ProductEntity product) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             product.save(conn);
         }
@@ -44,18 +43,27 @@ public class ProductController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditProductForm(@PathVariable int id, Model model) throws SQLException {
+    public String showEditProductForm(@PathVariable int id, Model model) {
         try (Connection conn = dbConnection.getConnection()) {
             ProductEntity product = ProductEntity.findById(id, conn);
-            model.addAttribute("product", product);
+            List<CategoryEntity> categories = CategoryEntity.getAll(conn);
+            System.out.println("Product: " + product.getId());
+            model.addAttribute("editProduct", product);
+            model.addAttribute("categories", categories);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return "editProduct";
+        return "products";
     }
 
-    @PostMapping("/edit/{id}")
-    public String updateProduct(@ModelAttribute ProductEntity product) throws SQLException {
+    @PostMapping("/edit")
+    public String updateProduct(@ModelAttribute("editProduct") ProductEntity product) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            product.save(conn);
+            if (product.getId() != 0) {
+                product.save(conn);
+            } else {
+                throw new IllegalArgumentException("Invalid product ID for editing");
+            }
         }
         return "redirect:/products";
     }

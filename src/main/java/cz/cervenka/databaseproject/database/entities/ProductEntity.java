@@ -11,54 +11,57 @@ public class ProductEntity {
     private double price;
     private int stock;
     private int category_id;
+    private String category_name;
 
     public ProductEntity() {}
 
-    public ProductEntity(int id, String name, double price, int stock, int category) {
+    public ProductEntity(int id, String name, double price, int stock, int category_id, String category_name) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.category_id = category;
-    }
-
-    public ProductEntity(int id, String name, double price, int stock, String categoryName) {
+        this.category_id = category_id;
+        this.category_name = category_name;
     }
 
     public static ProductEntity findById(int id, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM product WHERE id = ?";
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setInt(1, id);
-            ResultSet result = statement.executeQuery();
-            if (result.next()) {
+        String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +
+                "FROM product p " +
+                "JOIN category c ON p.category_id = c.id " +
+                "WHERE p.id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
                 return new ProductEntity(
-                        result.getInt("id"),
-                        result.getString("name"),
-                        result.getDouble("price"),
-                        result.getInt("stock"),
-                        result.getInt("category_id")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock"),
+                        rs.getInt("category_id"),
+                        rs.getString("category_name")
                 );
             }
         }
         return null;
     }
 
+    // Get all products with category names
     public static List<ProductEntity> getAllWithCategoryNames(Connection conn) throws SQLException {
         List<ProductEntity> products = new ArrayList<>();
-        String sql = "SELECT p.id, p.name, p.price, p.stock, c.name AS category_name " +
+        String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +
                 "FROM product p " +
                 "JOIN category c ON p.category_id = c.id";
-        try (Statement statement = conn.createStatement();
-             ResultSet result = statement.executeQuery(sql)) {
-            while (result.next()) {
-                ProductEntity product = new ProductEntity(
-                        result.getInt("id"),
-                        result.getString("name"),
-                        result.getDouble("price"),
-                        result.getInt("stock"),
-                        result.getString("category_name") // Use category name here
-                );
-                products.add(product);
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                products.add(new ProductEntity(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock"),
+                        rs.getInt("category_id"),
+                        rs.getString("category_name")
+                ));
             }
         }
         return products;
@@ -153,5 +156,13 @@ public class ProductEntity {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getCategory_name() {
+        return category_name;
+    }
+
+    public void setCategory_name(String category_name) {
+        this.category_name = category_name;
     }
 }

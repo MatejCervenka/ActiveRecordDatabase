@@ -25,9 +25,7 @@ public class DatabaseConnection {
         try {
             Class.forName(driver);
             assert url != null;
-            Connection connection = DriverManager.getConnection(url, username, password);
-            System.out.println("Successfully connected to the database!");
-            return connection;
+            return DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException e) {
             System.err.println("Database driver not found: " + driver);
             throw new SQLException("Driver not found", e);

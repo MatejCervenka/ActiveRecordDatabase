@@ -79,7 +79,7 @@ form {
 
 form label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
     color: #333;
 }
 
@@ -102,4 +102,22 @@ form button {
 
 form button:hover {
     background-color: #0056b3;
+}
+
+.button-link {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+
+#addCategory, #editCategory {
+    width: 200px;
+    padding: 10px;
+    margin-bottom: 5px;
 }

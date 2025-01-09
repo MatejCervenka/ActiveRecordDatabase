@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Products</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
 </head>
 <body>
 <h1>Product List</h1>
+
 <table>
+    <thead>
     <tr>
         <th>ID</th>
         <th>Name</th>
@@ -15,18 +18,66 @@
         <th>Category</th>
         <th>Actions</th>
     </tr>
+    </thead>
+    <tbody>
     <tr th:each="product : ${products}">
         <td th:text="${product.id}"></td>
         <td th:text="${product.name}"></td>
         <td th:text="${product.price}"></td>
         <td th:text="${product.stock}"></td>
-        <td th:text="${product.category_id}"></td>
+        <td th:text="${product.category_name}"></td>
         <td>
-            <a th:href="@{'/products/edit/' + ${product.id}}">Edit</a>
-            <a th:href="@{'/products/delete/' + ${product.id}}" onclick="return confirm('Are you sure?')">Delete</a>
+            <a th:href="@{'/products/edit/' + ${product.id}}" onclick="toggleForm('editForm')" class="button-link">Edit</a>
+            <a th:href="@{'/products/delete/' + ${product.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
         </td>
     </tr>
+    </tbody>
 </table>
-<a href="/products/add">Add New Product</a>
+
+<button onclick="toggleForm('addForm')">Add Product</button>
+
+<div id="addForm" style="display: none;">
+    <h2>Add Product</h2>
+    <form th:action="@{/products/add}" th:object="${newProduct}" method="post">
+        <label for="addName">Name:</label>
+        <input type="text" id="addName" th:field="*{name}" required/><br/>
+        <label for="addPrice">Price:</label>
+        <input type="number" id="addPrice" th:field="*{price}" step="0.1" required/><br/>
+        <label for="addStock">Stock:</label>
+        <input type="number" id="addStock" th:field="*{stock}" required/><br/>
+        <label for="addCategory">Category:</label>
+        <select id="addCategory" th:field="*{category_id}" required>
+            <option
+                    th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name}">
+            </option>
+        </select><br/>
+        <button type="submit">Add</button>
+        <button onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
+
+<div id="editForm" style="display: none;">
+    <h2>Edit Product</h2>
+    <form th:action="@{/products/edit}" th:object="${editProduct}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <label for="editName">Name:</label>
+        <input type="text" id="editName" th:field="*{name}" required/><br/>
+        <label for="editPrice">Price:</label>
+        <input type="number" id="editPrice" th:field="*{price}" step="0.01" required/><br/>
+        <label for="editStock">Stock:</label>
+        <input type="number" id="editStock" th:field="*{stock}" required/><br/>
+        <label for="editCategory">Category:</label>
+        <select id="editCategory" th:field="*{category_id}" required>
+            <option th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name}"></option>
+        </select><br/>
+
+        <button type="submit">Save</button>
+        <button onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
 </body>
 </html>
