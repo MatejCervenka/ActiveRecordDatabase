@@ -10,16 +10,19 @@ public class ProductEntity {
     private String name;
     private double price;
     private int stock;
-    private String category;
+    private int category_id;
 
     public ProductEntity() {}
 
-    public ProductEntity(int id, String name, double price, int stock, String category) {
+    public ProductEntity(int id, String name, double price, int stock, int category) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.category = category;
+        this.category_id = category;
+    }
+
+    public ProductEntity(int id, String name, double price, int stock, String categoryName) {
     }
 
     public static ProductEntity findById(int id, Connection conn) throws SQLException {
@@ -33,25 +36,28 @@ public class ProductEntity {
                         result.getString("name"),
                         result.getDouble("price"),
                         result.getInt("stock"),
-                        result.getString("category")
+                        result.getInt("category_id")
                 );
             }
         }
         return null;
     }
 
-    public static List<ProductEntity> getAll(Connection conn) throws SQLException {
+    public static List<ProductEntity> getAllWithCategoryNames(Connection conn) throws SQLException {
         List<ProductEntity> products = new ArrayList<>();
-        String sql = "SELECT * FROM product";
+        String sql = "SELECT p.id, p.name, p.price, p.stock, c.name AS category_name " +
+                "FROM product p " +
+                "JOIN category c ON p.category_id = c.id";
         try (Statement statement = conn.createStatement();
              ResultSet result = statement.executeQuery(sql)) {
             while (result.next()) {
-                ProductEntity product = new ProductEntity();
-                product.setId(result.getInt("id"));
-                product.setName(result.getString("name"));
-                product.setPrice(result.getDouble("price"));
-                product.setStock(result.getInt("stock"));
-                product.setCategory(result.getString("category"));
+                ProductEntity product = new ProductEntity(
+                        result.getInt("id"),
+                        result.getString("name"),
+                        result.getDouble("price"),
+                        result.getInt("stock"),
+                        result.getString("category_name") // Use category name here
+                );
                 products.add(product);
             }
         }
@@ -61,12 +67,12 @@ public class ProductEntity {
     public void save(Connection conn) throws SQLException {
         String sql;
         if (this.id == 0) {
-            sql = "INSERT INTO product (name, price, stock, category) VALUES (?, ?, ?, ?)";
+            sql = "INSERT INTO product (name, price, stock, category_id) VALUES (?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, this.name);
                 statement.setDouble(2, this.price);
                 statement.setInt(3, this.stock);
-                statement.setString(4, this.category);
+                statement.setInt(4, this.category_id);
                 statement.executeUpdate();
                 ResultSet keys = statement.getGeneratedKeys();
                 if (keys.next()) {
@@ -74,12 +80,12 @@ public class ProductEntity {
                 }
             }
         } else {
-            sql = "UPDATE product SET name = ?, price = ?, stock = ?, category = ? WHERE id = ?";
+            sql = "UPDATE product SET name = ?, price = ?, stock = ?, category_id = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setString(1, this.name);
                 statement.setDouble(2, this.price);
                 statement.setInt(3, this.stock);
-                statement.setString(4, this.category);
+                statement.setInt(4, this.category_id);
                 statement.setInt(5, this.id);
                 statement.executeUpdate();
             }
@@ -137,12 +143,12 @@ public class ProductEntity {
         this.stock = stock;
     }
 
-    public String getCategory() {
-        return category;
+    public int getCategory_id() {
+        return category_id;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setCategory_id(int category_id) {
+        this.category_id = category_id;
     }
 
     public void setId(int id) {

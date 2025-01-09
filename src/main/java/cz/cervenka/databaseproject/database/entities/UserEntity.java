@@ -10,7 +10,6 @@ public class UserEntity {
     private String email;
     private boolean isActive;
 
-    // Konstruktor
     public UserEntity(int userId, String name, String email, boolean isActive) {
         this.userId = userId;
         this.name = name;
@@ -18,9 +17,8 @@ public class UserEntity {
         this.isActive = isActive;
     }
 
-    // Načtení uživatele podle ID
     public static UserEntity findById(int id, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM user WHERE id = ?";
+        String sql = "SELECT * FROM [user] WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
@@ -36,10 +34,9 @@ public class UserEntity {
         return null;
     }
 
-    // Uložení nebo aktualizace uživatele
     public void save(Connection conn) throws SQLException {
         if (this.userId == 0) {
-            String sql = "INSERT INTO user (name, email, isActive) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO [user] (name, email, isActive) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, this.name);
                 stmt.setString(2, this.email);
@@ -51,7 +48,7 @@ public class UserEntity {
                 }
             }
         } else {
-            String sql = "UPDATE user SET name = ?, email = ?, isActive = ? WHERE id = ?";
+            String sql = "UPDATE [user] SET name = ?, email = ?, isActive = ? WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, this.name);
                 stmt.setString(2, this.email);
@@ -62,10 +59,9 @@ public class UserEntity {
         }
     }
 
-    // Odstranění uživatele
     public void delete(Connection conn) throws SQLException {
         if (this.userId != 0) {
-            String sql = "DELETE FROM user WHERE id = ?";
+            String sql = "DELETE FROM [user] WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, this.userId);
                 stmt.executeUpdate();
@@ -73,10 +69,9 @@ public class UserEntity {
         }
     }
 
-    // Generování reportu
     public static List<String> generateReport(Connection conn) throws SQLException {
         List<String> report = new ArrayList<>();
-        String sql = "SELECT COUNT(*) AS UserCount, isActive FROM user GROUP BY isActive";
+        String sql = "SELECT COUNT(*) AS UserCount, isActive FROM [user] GROUP BY isActive";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 report.add("Active: " + rs.getBoolean("IsActive") + " - Count: " + rs.getInt("UserCount"));
@@ -85,7 +80,7 @@ public class UserEntity {
         return report;
     }
 
-    // Gettery a settery
+
     public int getUserId() {
         return userId;
     }

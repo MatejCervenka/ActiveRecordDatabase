@@ -22,7 +22,7 @@ public class ProductController {
     @GetMapping
     public String listProducts(Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            List<ProductEntity> products = ProductEntity.getAll(conn);
+            List<ProductEntity> products = ProductEntity.getAllWithCategoryNames(conn);
             System.out.println("Fetched Products: " + products.size());
             model.addAttribute("products", products);
         }

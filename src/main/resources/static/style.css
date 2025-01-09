@@ -1,19 +1,37 @@
-/* Global styles */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
+    text-align: center;
 }
 
-/* Header */
 h1 {
     text-align: center;
     color: #333;
     margin-top: 20px;
 }
 
-/* Links */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
 a {
     text-decoration: none;
     color: #007BFF;
@@ -24,7 +42,6 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Table styles */
 table {
     width: 80%;
     margin: 20px auto;
@@ -52,7 +69,6 @@ tr:hover {
     background-color: #ddd;
 }
 
-/* Form styles */
 form {
     width: 50%;
     margin: 20px auto;

@@ -6,7 +6,6 @@
 </head>
 <body>
 <h1>Product List</h1>
-<a href="/products/add">Add New Product</a>
 <table>
     <tr>
         <th>ID</th>
@@ -21,12 +20,13 @@
         <td th:text="${product.name}"></td>
         <td th:text="${product.price}"></td>
         <td th:text="${product.stock}"></td>
-        <td th:text="${product.category}"></td>
+        <td th:text="${product.category_id}"></td>
         <td>
             <a th:href="@{'/products/edit/' + ${product.id}}">Edit</a>
             <a th:href="@{'/products/delete/' + ${product.id}}" onclick="return confirm('Are you sure?')">Delete</a>
         </td>
     </tr>
 </table>
+<a href="/products/add">Add New Product</a>
 </body>
 </html>

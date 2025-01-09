@@ -10,7 +10,6 @@ public class OrderEntity {
     private Timestamp orderDate;
     private double total;
 
-    // Constructor
     public OrderEntity(int id, int userId, Timestamp orderDate, double total) {
         this.id = id;
         this.user_id = userId;
@@ -18,25 +17,23 @@ public class OrderEntity {
         this.total = total;
     }
 
-    // Find by ID
     public static OrderEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT * FROM [order] WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, id);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) {
+            ResultSet result = statement.executeQuery();
+            if (result.next()) {
                 return new OrderEntity(
-                        rs.getInt("id"),
-                        rs.getInt("UserID"),
-                        rs.getTimestamp("OrderDate"),
-                        rs.getDouble("Total")
+                        result.getInt("id"),
+                        result.getInt("user_id"),
+                        result.getTimestamp("orderDate"),
+                        result.getDouble("total")
                 );
             }
         }
         return null;
     }
 
-    // Save or update
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
             String sql = "INSERT INTO [order] (user_id, total) VALUES (?, ?)";
@@ -50,7 +47,7 @@ public class OrderEntity {
                 }
             }
         } else {
-            String sql = "UPDATE [order] SET id = ?, Total = ? WHERE id = ?";
+            String sql = "UPDATE [order] SET id = ?, total = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, this.user_id);
                 statement.setDouble(2, this.total);
@@ -60,7 +57,6 @@ public class OrderEntity {
         }
     }
 
-    // Delete
     public void delete(Connection conn) throws SQLException {
         if (this.id != 0) {
             String sql = "DELETE FROM [order] WHERE id = ?";
@@ -71,24 +67,23 @@ public class OrderEntity {
         }
     }
 
-    // Get all order
-    public static List<OrderEntity> findAll(Connection conn) throws SQLException {
+    public static List<OrderEntity> getAll(Connection conn) throws SQLException {
         List<OrderEntity> order = new ArrayList<>();
         String sql = "SELECT * FROM [order]";
-        try (Statement statement = conn.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
-            while (rs.next()) {
+        try (Statement statement = conn.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            while (result.next()) {
                 order.add(new OrderEntity(
-                        rs.getInt("id"),
-                        rs.getInt("UserID"),
-                        rs.getTimestamp("OrderDate"),
-                        rs.getDouble("Total")
+                        result.getInt("id"),
+                        result.getInt("user_id"),
+                        result.getTimestamp("orderDate"),
+                        result.getDouble("total")
                 ));
             }
         }
         return order;
     }
 
-    // Getters and Setters
     public int getId() {
         return id;
     }
