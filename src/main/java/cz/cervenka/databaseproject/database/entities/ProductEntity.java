@@ -46,7 +46,6 @@ public class ProductEntity {
         return null;
     }
 
-    // Get all products with category names
     public static List<ProductEntity> getAllWithCategoryNames(Connection conn) throws SQLException {
         List<ProductEntity> products = new ArrayList<>();
         String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +

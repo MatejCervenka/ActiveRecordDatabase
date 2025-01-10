@@ -26,13 +26,13 @@ public class ProductController {
             List<CategoryEntity> categories = CategoryEntity.getAll(conn);
             model.addAttribute("products", products);
             model.addAttribute("categories", categories);
-            model.addAttribute("editProduct", new ProductEntity());
             model.addAttribute("newProduct", new ProductEntity());
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return "products";
     }
+
 
     @PostMapping("/add")
     public String addProduct(@ModelAttribute("newProduct") ProductEntity product) throws SQLException {
@@ -42,31 +42,34 @@ public class ProductController {
         return "redirect:/products";
     }
 
+
     @GetMapping("/edit/{id}")
-    public String showEditProductForm(@PathVariable int id, Model model) {
+    public String showEditProductForm(@PathVariable int id, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             ProductEntity product = ProductEntity.findById(id, conn);
+            List<ProductEntity> products = ProductEntity.getAllWithCategoryNames(conn);
             List<CategoryEntity> categories = CategoryEntity.getAll(conn);
-            System.out.println("Product: " + product.getId());
-            model.addAttribute("editProduct", product);
+            model.addAttribute("products", products);
             model.addAttribute("categories", categories);
-        } catch (SQLException e) {
-            e.printStackTrace();
+            model.addAttribute("editProduct", product);
+            model.addAttribute("newProduct", new ProductEntity());
         }
         return "products";
     }
 
+
     @PostMapping("/edit")
     public String updateProduct(@ModelAttribute("editProduct") ProductEntity product) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            if (product.getId() != 0) {
-                product.save(conn);
+            if (product.getId() > 0) {
+                product.save(conn); // Save updates
             } else {
-                throw new IllegalArgumentException("Invalid product ID for editing");
+                throw new IllegalArgumentException("Product ID is missing or invalid.");
             }
         }
         return "redirect:/products";
     }
+
 
     @GetMapping("/delete/{id}")
     public String deleteProduct(@PathVariable int id) throws SQLException {

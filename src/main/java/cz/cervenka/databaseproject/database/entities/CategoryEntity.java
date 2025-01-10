@@ -43,6 +43,38 @@ public class CategoryEntity {
         return categories;
     }
 
+    public void save(Connection conn) throws SQLException {
+        String sql;
+        if (this.id == 0) {
+            sql = "INSERT INTO category (name) VALUES (?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, this.name);
+                statement.executeUpdate();
+                ResultSet rs = statement.getGeneratedKeys();
+                if (rs.next()) {
+                    this.id = rs.getInt(1);
+                }
+            }
+        } else {
+            sql = "UPDATE category SET name =? WHERE id =?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, this.name);
+                statement.setInt(2, this.id);
+                statement.executeUpdate();
+            }
+        }
+    }
+
+    public void delete(Connection conn) throws SQLException {
+        if (this.id!= 0) {
+            String sql = "DELETE FROM category WHERE id =?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, this.id);
+                statement.executeUpdate();
+            }
+        }
+    }
+
     // Getters and setters
     public int getId() {
         return id;

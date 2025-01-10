@@ -113,8 +113,8 @@ form button:hover {
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
+    margin-right: 10px;
 }
-
 
 #addCategory, #editCategory {
     width: 200px;
