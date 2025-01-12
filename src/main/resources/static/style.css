@@ -116,7 +116,7 @@ form button:hover {
     margin-right: 10px;
 }
 
-#addCategory, #editCategory {
+#addCategory, #editCategory, #addUser, #editUser {
     width: 200px;
     padding: 10px;
     margin-bottom: 5px;

@@ -1,10 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Users</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/script.js}"></script>
 </head>
 <body>
+<h1>Users</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>IsActive</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.name}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.isActive ? 'Yes' : 'No'}"></td>
+        <td>
+            <a th:href="@{'/users/edit/' + ${user.id}}" class="button-link">Edit</a>
+            <a th:href="@{'/users/delete/' + ${user.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<button onclick="toggleForm('addForm')">Add User</button>
+<button onclick="window.location.href='/'">Back</button>
+
+<div id="addForm" style="display: none;">
+    <h2>Add User</h2>
+    <form th:action="@{/users/add}" th:object="${newUser}" method="post">
+        <label for="addName">Name:</label>
+        <input type="text" id="addName" th:field="*{name}" required/><br/>
+        <label for="addEmail">Email:</label>
+        <input type="text" id="addEmail" th:field="*{email}" step="0.1" required/><br/>
+        <label for="addIsActive">Is Active:</label>
+        <input type="checkbox" id="addIsActive" th:field="*{isActive}" />
+        <br/>
+        <button type="submit">Add</button>
+        <button onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
+
+<div id="editForm" th:if="${editUser != null}" style="display: block;">
+    <h2>Edit User</h2>
+    <form th:action="@{/users/edit}" th:object="${editUser}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <label for="editName">Name:</label>
+        <input type="text" id="editName" th:field="*{name}" required/><br/>
+        <label for="editEmail">Email:</label>
+        <input type="text" id="editEmail" th:field="*{email}" step="0.1" required/><br/>
+        <label for="editIsActive">Is Active:</label>
+        <input type="checkbox" id="editIsActive" th:field="*{isActive}" />
+        <br/>
+        <button type="submit">Save</button>
+        <button type="button" onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
 
 </body>
 </html>

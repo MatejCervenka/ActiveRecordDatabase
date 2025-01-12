@@ -1,10 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Orders</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/script.js}"></script>
 </head>
 <body>
+<h1>Orders</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Order Date</th>
+        <th>Total</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.user_name}"></td>
+        <td th:text="${order.orderDate}"></td>
+        <td th:text="${order.total}"></td>
+        <td>
+            <a th:href="@{'/orders/edit/' + ${order.id}}" class="button-link">Edit</a>
+            <a th:href="@{'/orders/delete/' + ${order.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<button onclick="toggleForm('addForm')">Add Order</button>
+<button onclick="window.location.href='/'">Back</button>
+
+<div id="addForm" style="display: none;">
+    <h2>Add Order</h2>
+    <form th:action="@{/orders/add}" th:object="${newOrder}" method="post">
+        <label for="addUser">User:</label>
+        <select id="addUser" th:field="*{user_id}" required>
+            <option
+                    th:each="user : ${users}"
+                    th:value="${user.id}"
+                    th:text="${user.name}">
+            </option>
+        </select>
+        <label for="addOrderDate">Price:</label>
+        <input type="date" id="addOrderDate" th:field="*{orderDate}" required/><br/>
+        <label for="addTotal">Total:</label>
+        <input type="number" id="addTotal" th:field="*{total}" step="0.1" required/><br/>
+        <br/>
+        <button type="submit">Add</button>
+        <button onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
+
+<div id="editForm" th:if="${editOrder != null}" style="display: block;">
+    <h2>Edit Order</h2>
+    <form th:action="@{/orders/edit}" th:object="${editOrder}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <label for="editUser">User:</label>
+        <select id="editUser" th:field="*{user_id}" required>
+            <option
+                    th:each="user : ${users}"
+                    th:value="${user.id}"
+                    th:text="${user.name}">
+            </option>
+        </select>
+        <label for="editOrderDate">Price:</label>
+        <input type="date" id="editOrderDate" th:field="*{orderDate}" required/><br/>
+        <label for="editTotal">Total:</label>
+        <input type="number" id="editTotal" th:field="*{total}" step="0.1" required/><br/>
+        <br/>
+        <button type="submit">Save</button>
+        <button type="button" onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
 
 </body>
 </html>

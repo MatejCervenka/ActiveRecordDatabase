@@ -1,7 +1,6 @@
 package cz.cervenka.databaseproject.controllers;
 
 import cz.cervenka.databaseproject.database.entities.CategoryEntity;
-import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,75 +11,69 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Controller
-@RequestMapping("/products")
-public class ProductController {
+@RequestMapping("/categories")
+public class CategoryController {
 
     private final DatabaseConnection dbConnection;
 
-    public ProductController(DatabaseConnection dbConnection) {
+    public CategoryController(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 
     @GetMapping
-    public String listProducts(Model model) {
+    public String listCategories(Model model) {
         try (Connection conn = dbConnection.getConnection()) {
-            List<ProductEntity> products = ProductEntity.getAll(conn);
             List<CategoryEntity> categories = CategoryEntity.getAll(conn);
-            model.addAttribute("products", products);
             model.addAttribute("categories", categories);
-            model.addAttribute("newProduct", new ProductEntity());
+            model.addAttribute("newCategory", new CategoryEntity());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return "products";
+        return "categories";
     }
-
 
     @PostMapping("/add")
-    public String addProduct(@ModelAttribute("newProduct") ProductEntity product) throws SQLException {
+    public String addCategory(@ModelAttribute("newCategory") CategoryEntity user) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            product.save(conn);
+            user.save(conn);
         }
-        return "redirect:/products";
+        return "redirect:/categories";
     }
 
-
     @GetMapping("/edit/{id}")
-    public String showEditProductForm(@PathVariable int id, Model model) throws SQLException {
+    public String showEditCategoryForm(@PathVariable int id, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            ProductEntity product = ProductEntity.findById(id, conn);
-            List<ProductEntity> products = ProductEntity.getAll(conn);
+            CategoryEntity product = CategoryEntity.findById(id, conn);
             List<CategoryEntity> categories = CategoryEntity.getAll(conn);
-            model.addAttribute("products", products);
             model.addAttribute("categories", categories);
-            model.addAttribute("editProduct", product);
-            model.addAttribute("newProduct", new ProductEntity());
+            model.addAttribute("editCategory", product);
+            model.addAttribute("newCategory", new CategoryEntity());
         }
-        return "products";
+        return "categories";
     }
 
 
     @PostMapping("/edit")
-    public String updateProduct(@ModelAttribute("editProduct") ProductEntity product) throws SQLException {
+    public String updateCategory(@ModelAttribute("editCategory") CategoryEntity product) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             if (product.getId() > 0) {
                 product.save(conn);
             } else {
-                throw new IllegalArgumentException("Product ID is missing or invalid.");
+                throw new IllegalArgumentException("Category ID is missing or invalid.");
             }
         }
-        return "redirect:/products";
+        return "redirect:/categories";
     }
 
 
     @GetMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable int id) throws SQLException {
+    public String deleteCategory(@PathVariable int id) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            ProductEntity product = ProductEntity.findById(id, conn);
+            CategoryEntity product = CategoryEntity.findById(id, conn);
             if (product != null) {
                 product.delete(conn);
             }
         }
-        return "redirect:/products";
+        return "redirect:/categories";
     }
 }

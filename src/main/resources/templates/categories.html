@@ -1,10 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Categories</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/script.js}"></script>
 </head>
 <body>
+<h1>Categories</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="category : ${categories}">
+        <td th:text="${category.id}"></td>
+        <td th:text="${category.name}"></td>
+        <td>
+            <a th:href="@{'/categories/edit/' + ${category.id}}" class="button-link">Edit</a>
+            <a th:href="@{'/categories/delete/' + ${category.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<button onclick="toggleForm('addForm')">Add Category</button>
+<button onclick="window.location.href='/'">Back</button>
+
+<div id="addForm" style="display: none;">
+    <h2>Add Category</h2>
+    <form th:action="@{/categories/add}" th:object="${newCategory}" method="post">
+        <label for="addName">Name:</label>
+        <input type="text" id="addName" th:field="*{name}" required/><br/>
+        <br/>
+        <button type="submit">Add</button>
+        <button onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
+
+<div id="editForm" th:if="${editCategory != null}" style="display: block;">
+    <h2>Edit Category</h2>
+    <form th:action="@{/categories/edit}" th:object="${editCategory}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <label for="editName">Name:</label>
+        <input type="text" id="editName" th:field="*{name}" required/><br/>
+        <br/>
+        <button type="submit">Save</button>
+        <button type="button" onclick="toggleForm()">Cancel</button>
+    </form>
+</div>
 
 </body>
 </html>
