@@ -41,7 +41,7 @@
 <div id="addForm" style="display: none;">
     <h2>Add Product</h2>
     <form th:action="@{/order-products}" th:object="${newOrderProduct}" method="post">
-        <label for="orderTotal">Order Name:</label>
+        <label for="orderTotal">Total Price:</label>
         <select id="orderTotal" th:field="*{orderTotal}" required>
             <option
                     th:each="order : ${orders}"

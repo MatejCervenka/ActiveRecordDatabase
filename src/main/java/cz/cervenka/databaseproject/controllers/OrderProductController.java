@@ -1,12 +1,10 @@
 package cz.cervenka.databaseproject.controllers;
 
-import cz.cervenka.databaseproject.database.entities.CategoryEntity;
 import cz.cervenka.databaseproject.database.entities.OrderEntity;
 import cz.cervenka.databaseproject.database.entities.OrderProductEntity;
 import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

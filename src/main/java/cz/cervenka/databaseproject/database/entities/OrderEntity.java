@@ -25,6 +25,26 @@ public class OrderEntity {
         this.user_name = user_name;
     }
 
+    public static List<OrderEntity> getAll(Connection conn) throws SQLException {
+        List<OrderEntity> order = new ArrayList<>();
+        String sql = "SELECT o.id, o.user_id, o.orderDate, o.total, u.name AS user_name " +
+                "FROM [order] o " +
+                "JOIN [user] u ON o.user_id = u.id";
+        try (Statement statement = conn.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            while (result.next()) {
+                order.add(new OrderEntity(
+                        result.getInt("id"),
+                        result.getInt("user_id"),
+                        result.getDate("orderDate").toLocalDate(),
+                        result.getDouble("total"),
+                        result.getString("user_name")
+                ));
+            }
+        }
+        return order;
+    }
+
     public static OrderEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT o.id, o.user_id, o.orderDate, o.total, u.name AS user_name " +
                 "FROM [order] o " +
@@ -45,6 +65,29 @@ public class OrderEntity {
         }
         return null;
     }
+
+    public static List<OrderEntity> findByUserId(int userId, Connection conn) throws SQLException {
+        List<OrderEntity> orders = new ArrayList<>();
+        String sql = "SELECT o.id, o.user_id, o.orderDate, o.total, u.name AS user_name " +
+                "FROM [order] o " +
+                "JOIN [user] u ON o.user_id = u.id " +
+                "WHERE o.user_id = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            ResultSet result = statement.executeQuery();
+            while (result.next()) {
+                orders.add(new OrderEntity(
+                        result.getInt("id"),
+                        result.getInt("user_id"),
+                        result.getDate("orderDate").toLocalDate(),
+                        result.getDouble("total"),
+                        result.getString("user_name")
+                ));
+            }
+        }
+        return orders;
+    }
+
 
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
@@ -79,25 +122,6 @@ public class OrderEntity {
         }
     }
 
-    public static List<OrderEntity> getAll(Connection conn) throws SQLException {
-        List<OrderEntity> order = new ArrayList<>();
-        String sql = "SELECT o.id, o.user_id, o.orderDate, o.total, u.name AS user_name " +
-                "FROM [order] o " +
-                "JOIN [user] u ON o.user_id = u.id";
-        try (Statement statement = conn.createStatement();
-             ResultSet result = statement.executeQuery(sql)) {
-            while (result.next()) {
-                order.add(new OrderEntity(
-                        result.getInt("id"),
-                        result.getInt("user_id"),
-                        result.getDate("orderDate").toLocalDate(),
-                        result.getDouble("total"),
-                        result.getString("user_name")
-                ));
-            }
-        }
-        return order;
-    }
 
     public int getId() {
         return id;
