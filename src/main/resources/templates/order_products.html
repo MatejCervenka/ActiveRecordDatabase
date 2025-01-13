@@ -8,72 +8,76 @@
 <body>
 <h1>Order Products</h1>
 
-<!-- Table for displaying products in an order -->
 <table>
     <thead>
     <tr>
-        <th>Order Name</th>
-        <th>Product Name</th>
+        <th>ID</th>
+        <th>OrderTotal</th>
+        <th>OrderDate</th>
+        <th>ProductName</th>
         <th>Quantity</th>
-        <th>Price</th>
         <th>Actions</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="orderProduct : ${orderProducts}">
-        <td th:text="${orderProduct.orderName}"></td>
+        <td th:text="${orderProduct.id}"></td>
+        <td th:text="${orderProduct.orderTotal}"></td>
+        <td th:text="${orderProduct.orderDate}"></td>
         <td th:text="${orderProduct.productName}"></td>
         <td th:text="${orderProduct.quantity}"></td>
-        <td th:text="${orderProduct.price}"></td>
         <td>
-            <a th:href="@{'/order-products/edit/' + ${orderProduct.orderName} + '/' + ${orderProduct.productName}}" class="button-link">Edit</a>
-            <a th:href="@{'/order-products/delete/' + ${orderProduct.orderName} + '/' + ${orderProduct.productName}}"
+            <a th:href="@{'/order-products/edit/' + ${orderProduct.orderTotal} + '/' + ${orderProduct.productName}}" class="button-link">Edit</a>
+            <a th:href="@{'/order-products/delete/' + ${orderProduct.orderTotal} + '/' + ${orderProduct.productName}}"
                onclick="return confirm('Are you sure you want to delete this product?')" class="button-link">Delete</a>
         </td>
     </tr>
     </tbody>
 </table>
 
-<!-- Button to show add form -->
 <button onclick="toggleForm('addForm')">Add Product</button>
 <button onclick="window.location.href='/'">Back</button>
 
-<!-- Add Product Form -->
 <div id="addForm" style="display: none;">
     <h2>Add Product</h2>
     <form th:action="@{/order-products}" th:object="${newOrderProduct}" method="post">
-        <label for="orderName">Order Name:</label>
-        <input type="text" id="orderName" th:field="*{orderName}" required/><br/>
+        <label for="orderTotal">Order Name:</label>
+        <select id="orderTotal" th:field="*{orderTotal}" required>
+            <option
+                    th:each="order : ${orders}"
+                    th:value="${order.id}"
+                    th:text="${order.total}">
+            </option>
+        </select>
 
         <label for="productName">Product Name:</label>
-        <input type="text" id="productName" th:field="*{productName}" required/><br/>
+        <select id="productName" th:field="*{productName}" required>
+            <option
+                    th:each="product : ${products}"
+                    th:value="${product.id}"
+                    th:text="${product.name}">
+            </option>
+        </select>
 
         <label for="quantity">Quantity:</label>
         <input type="number" id="quantity" th:field="*{quantity}" required/><br/>
-
-        <label for="price">Price:</label>
-        <input type="number" id="price" th:field="*{price}" step="0.01" required/><br/>
 
         <button type="submit">Add</button>
         <button type="button" onclick="toggleForm()">Cancel</button>
     </form>
 </div>
 
-<!-- Edit Product Form -->
 <div id="editForm" th:if="${editOrderProduct != null}" style="display: block;">
     <h2>Edit Product</h2>
     <form th:action="@{/order-products}" th:object="${editOrderProduct}" method="post">
-        <label for="editOrderName">Order Name:</label>
-        <input type="text" id="editOrderName" th:field="*{orderName}" readonly/><br/>
+        <label for="editOrderTotal">Order Name:</label>
+        <input type="text" id="editOrderTotal" th:field="*{orderTotal}" readonly/><br/>
 
         <label for="editProductName">Product Name:</label>
         <input type="text" id="editProductName" th:field="*{productName}" readonly/><br/>
 
         <label for="editQuantity">Quantity:</label>
         <input type="number" id="editQuantity" th:field="*{quantity}" required/><br/>
-
-        <label for="editPrice">Price:</label>
-        <input type="number" id="editPrice" th:field="*{price}" step="0.01" required/><br/>
 
         <button type="submit">Save</button>
         <button type="button" onclick="toggleForm()">Cancel</button>

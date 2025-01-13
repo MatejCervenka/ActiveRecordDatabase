@@ -29,17 +29,17 @@ public class ProductEntity {
                 "FROM product p " +
                 "JOIN category c ON p.category_id = c.id " +
                 "WHERE p.id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            ResultSet result = statement.executeQuery();
+            if (result.next()) {
                 return new ProductEntity(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getDouble("price"),
-                        rs.getInt("stock"),
-                        rs.getInt("category_id"),
-                        rs.getString("category_name")
+                        result.getInt("id"),
+                        result.getString("name"),
+                        result.getDouble("price"),
+                        result.getInt("stock"),
+                        result.getInt("category_id"),
+                        result.getString("category_name")
                 );
             }
         }
@@ -51,15 +51,16 @@ public class ProductEntity {
         String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +
                 "FROM product p " +
                 "JOIN category c ON p.category_id = c.id";
-        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
+        try (Statement statement = conn.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            while (result.next()) {
                 products.add(new ProductEntity(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getDouble("price"),
-                        rs.getInt("stock"),
-                        rs.getInt("category_id"),
-                        rs.getString("category_name")
+                        result.getInt("id"),
+                        result.getString("name"),
+                        result.getDouble("price"),
+                        result.getInt("stock"),
+                        result.getInt("category_id"),
+                        result.getString("category_name")
                 ));
             }
         }

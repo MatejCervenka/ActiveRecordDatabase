@@ -1,24 +1,31 @@
 package cz.cervenka.databaseproject.database.entities;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OrderProductEntity {
+    private int id;
     private int orderId;
     private int productId;
     private int quantity;
+    private double total;
+    private LocalDate orderDate;
+    private String product_name;
 
-    // Constructor
-    public OrderProductEntity(int orderId, int productId, int quantity) {
+    public OrderProductEntity() {
+    }
+
+    public OrderProductEntity(int id, int orderId, int productId, int quantity, double total, LocalDate orderDate, String productName) {
+        this.id = id;
         this.orderId = orderId;
         this.productId = productId;
         this.quantity = quantity;
+        this.total = total;
+        this.orderDate = orderDate;
+        this.product_name = productName;
     }
-
 
     // Save or Update (MERGE INTO)
     public void save(Connection conn) throws SQLException {
@@ -45,6 +52,28 @@ public class OrderProductEntity {
         }
     }
 
+    public static List<OrderProductEntity> getAll(Connection conn) throws SQLException {
+        List<OrderProductEntity> orderProduct = new ArrayList<>();
+        String sql = "SELECT oP.order_id, oP.product_id, oP.quantity, o.total as total, o.orderDate AS orderDate, p.name AS product_name " +
+                "FROM orderProducts oP " +
+                "JOIN [order] o ON oP.order_id = o.id " +
+                "JOIN product p ON oP.product_id = p.id ";
+        try (Statement statement = conn.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            while (result.next()) {
+                orderProduct.add(new OrderProductEntity(
+                        result.getInt("id"),
+                        result.getInt("order_id"),
+                        result.getInt("product_id"),
+                        result.getInt("quantity"),
+                        result.getDouble("total"),
+                        result.getDate("orderDate").toLocalDate(),
+                        result.getString("product_name")));
+            }
+        }
+        return orderProduct;
+    }
+
     // Find all by Order ID
     public static List<OrderProductEntity> findByOrderId(int orderId, Connection conn) throws SQLException {
         String sql = "SELECT * FROM orderProducts WHERE order_id = ?";
@@ -52,30 +81,58 @@ public class OrderProductEntity {
 
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, orderId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
                     results.add(new OrderProductEntity(
-                            resultSet.getInt("order_id"),
-                            resultSet.getInt("product_id"),
-                            resultSet.getInt("quantity")
-                    ));
+                            result.getInt("id"),
+                            result.getInt("order_id"),
+                            result.getInt("product_id"),
+                            result.getInt("quantity"),
+                            result.getDouble("total"),
+                            result.getDate("orderDate").toLocalDate(),
+                            result.getString("product_name")));
                 }
             }
         }
         return results;
     }
 
-    // Delete an OrderProductEntity by order_id and product_id
-    public static void delete(int orderId, int productId, Connection conn) throws SQLException {
+    // Find by Order Name and Product Name
+    public static OrderProductEntity findByOrderTotalAndProductName(double total, String productName, Connection conn) throws SQLException {
+        String sql = "SELECT oP.id, oP.order_id, oP.product_id, oP.quantity, o.total as total, o.orderDate AS orderDate, p.name AS product_name " +
+                "FROM orderProducts oP " +
+                "JOIN [order] o ON oP.order_id = o.id " +
+                "JOIN product p ON oP.product_id = p.id " +
+                "WHERE total = ? AND name = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setDouble(1, total);
+            statement.setString(2, productName);
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    return new OrderProductEntity(
+                            result.getInt("id"),
+                            result.getInt("order_id"),
+                            result.getInt("product_id"),
+                            result.getInt("quantity"),
+                            result.getDouble("total"),
+                            result.getDate("orderDate").toLocalDate(),
+                            result.getString("product_name"));
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
+    public static void delete(double total, String productName, Connection conn) throws SQLException {
         String sql = "DELETE FROM orderProducts WHERE order_id = ? AND product_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setInt(1, orderId);
-            statement.setInt(2, productId);
+            statement.setDouble(1, total);
+            statement.setString(2, productName);
             statement.executeUpdate();
         }
     }
 
-    // Delete all by Order ID
     public static void deleteByOrderId(int orderId, Connection conn) throws SQLException {
         String sql = "DELETE FROM orderProducts WHERE order_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -84,7 +141,7 @@ public class OrderProductEntity {
         }
     }
 
-
+    // Getters and setters
     public int getOrderId() {
         return orderId;
     }
@@ -107,5 +164,33 @@ public class OrderProductEntity {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public double getOrderTotal() {
+        return total;
+    }
+
+    public void setOrderTotal(double total) {
+        this.total = total;
+    }
+
+    public String getProductName() {
+        return product_name;
+    }
+
+    public void setProductName(String product_name) {
+        this.product_name = product_name;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public int getId() {
+        return id;
     }
 }
