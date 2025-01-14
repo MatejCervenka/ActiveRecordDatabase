@@ -4,6 +4,7 @@ import cz.cervenka.databaseproject.database.entities.CategoryEntity;
 import cz.cervenka.databaseproject.database.entities.UserEntity;
 import cz.cervenka.databaseproject.database.entities.UserEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private final DatabaseConnection dbConnection;
+    /*private final DatabaseConnection dbConnection;
 
     public UserController(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
@@ -77,5 +78,42 @@ public class UserController {
             }
         }
         return "redirect:/users";
+    }*/
+
+    private final DatabaseConnection dbConnection;
+
+    public UserController(DatabaseConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
+    @GetMapping("/register")
+    public String showRegisterForm(Model model) {
+        model.addAttribute("user", new UserEntity());
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String registerUser(@ModelAttribute UserEntity user) throws SQLException {
+        try (Connection conn = dbConnection.getConnection()) {
+            user.save(conn);
+        }
+        return "redirect:/login";
+    }
+
+    @GetMapping("/login")
+    public String showLoginForm(Model model) {
+        model.addAttribute("user", new UserEntity());
+        return "login";
+    }
+
+    @PostMapping("/login")
+    public String loginUser(@ModelAttribute UserEntity user, HttpSession session) throws SQLException {
+        try (Connection conn = dbConnection.getConnection()) {
+            if (user.isValid(conn)) {
+                session.setAttribute("loggedUser", user);
+                return "redirect:/products";
+            }
+        }
+        return "login";
     }
 }

@@ -35,6 +35,17 @@ public class ProductController {
         return "products";
     }
 
+    @GetMapping("/category/{id}")
+    public String getProductsByCategory(@PathVariable int id, Model model) throws SQLException {
+        try (Connection conn = dbConnection.getConnection()) {
+            List<ProductEntity> products = ProductEntity.findByCategory(id, conn);
+            CategoryEntity category = CategoryEntity.findById(id, conn);
+            model.addAttribute("products", products);
+            model.addAttribute("category", category);
+        }
+        return "category-products";
+    }
+
 
     @PostMapping("/add")
     public String addProduct(@ModelAttribute("newProduct") ProductEntity product) throws SQLException {

@@ -1,7 +1,9 @@
 
 package cz.cervenka.databaseproject.controllers;
 
+import cz.cervenka.databaseproject.database.entities.CustomerEntity;
 import cz.cervenka.databaseproject.database.entities.OrderEntity;
+import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.database.entities.UserEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import org.springframework.stereotype.Controller;
@@ -34,6 +36,25 @@ public class OrderController {
             e.printStackTrace();
         }
         return "orders";
+    }
+
+    @GetMapping("/checkout")
+    public String showCheckoutForm(Model model) {
+        model.addAttribute("order", new OrderEntity());
+        model.addAttribute("customer", new CustomerEntity());
+        return "checkout";
+    }
+
+    @PostMapping("/checkout")
+    public String checkout(@ModelAttribute CustomerEntity customer, @RequestParam int productId, @RequestParam int quantity) throws SQLException {
+        try (Connection conn = dbConnection.getConnection()) {
+            ProductEntity product = ProductEntity.findById(productId, conn);
+            if (product != null && product.getStock() >= quantity) {
+                OrderEntity order = new OrderEntity(customer, product, quantity);
+                order.save(conn);
+            }
+        }
+        return "redirect:/products";
     }
 
     @PostMapping("/add")

@@ -1,86 +1,30 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Products</title>
-    <link rel="stylesheet" th:href="@{/style.css}">
-    <script th:src="@{/script.js}"></script>
-</head>
-<body>
 <h1>Products</h1>
-
 <table>
     <thead>
     <tr>
-        <th>ID</th>
         <th>Name</th>
+        <th>Category</th>
         <th>Price</th>
         <th>Stock</th>
-        <th>Category</th>
         <th>Actions</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="product : ${products}">
-        <td th:text="${product.id}"></td>
         <td th:text="${product.name}"></td>
+        <td th:text="${product.category_name}"></td>
         <td th:text="${product.price}"></td>
         <td th:text="${product.stock}"></td>
-        <td th:text="${product.category_name}"></td>
         <td>
-            <a th:href="@{'/products/edit/' + ${product.id}}" class="button-link">Edit</a>
-            <a th:href="@{'/products/delete/' + ${product.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
+            <form th:action="@{/orders/checkout}" method="get">
+                <input type="hidden" th:value="${product.id}" name="productId"/>
+
+                <label for="quantity">Quantity:</label>
+                <input id="quantity" type="number" name="quantity" placeholder="Quantity" required/>
+
+                <button type="submit">Buy</button>
+            </form>
         </td>
     </tr>
     </tbody>
 </table>
-
-<button onclick="toggleForm('addForm')">Add Product</button>
-<button onclick="window.location.href='/'">Back</button>
-
-<div id="addForm" style="display: none;">
-    <h2>Add Product</h2>
-    <form th:action="@{/products/add}" th:object="${newProduct}" method="post">
-        <label for="addName">Name:</label>
-        <input type="text" id="addName" th:field="*{name}" required/><br/>
-        <label for="addPrice">Price:</label>
-        <input type="number" id="addPrice" th:field="*{price}" step="0.1" required/><br/>
-        <label for="addStock">Stock:</label>
-        <input type="number" id="addStock" th:field="*{stock}" required/><br/>
-        <label for="addCategory">Category:</label>
-        <select id="addCategory" th:field="*{category_id}" required>
-            <option
-                    th:each="category : ${categories}"
-                    th:value="${category.id}"
-                    th:text="${category.name}">
-            </option>
-        </select><br/>
-        <button type="submit">Add</button>
-        <button onclick="toggleForm()">Cancel</button>
-    </form>
-</div>
-
-<div id="editForm" th:if="${editProduct != null}" style="display: block;">
-    <h2>Edit Product</h2>
-    <form th:action="@{/products/edit}" th:object="${editProduct}" method="post">
-        <input type="hidden" th:field="*{id}"/>
-        <label for="editName">Name:</label>
-        <input type="text" id="editName" th:field="*{name}" required/><br/>
-        <label for="editPrice">Price:</label>
-        <input type="number" id="editPrice" th:field="*{price}" step="0.01" required/><br/>
-        <label for="editStock">Stock:</label>
-        <input type="number" id="editStock" th:field="*{stock}" required/><br/>
-        <label for="editCategory">Category:</label>
-        <select id="editCategory" th:field="*{category_id}" required>
-            <option
-                    th:each="category : ${categories}"
-                    th:value="${category.id}"
-                    th:text="${category.name}">
-            </option>
-        </select><br/>
-        <button type="submit">Save</button>
-        <button type="button" onclick="toggleForm()">Cancel</button>
-    </form>
-</div>
-
-</body>
-</html>

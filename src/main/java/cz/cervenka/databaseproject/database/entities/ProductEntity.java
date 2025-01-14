@@ -67,6 +67,26 @@ public class ProductEntity {
         return products;
     }
 
+    public static List<ProductEntity> findByCategory(int categoryId, Connection conn) throws SQLException {
+        String query = "SELECT * FROM product WHERE category_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, categoryId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<ProductEntity> products = new ArrayList<>();
+                while (rs.next()) {
+                    ProductEntity product = new ProductEntity();
+                    product.setId(rs.getInt("id"));
+                    product.setName(rs.getString("name"));
+                    product.setPrice(rs.getDouble("price"));
+                    product.setStock(rs.getInt("stock"));
+                    product.setCategory_id(rs.getInt("category_id"));
+                    products.add(product);
+                }
+                return products;
+            }
+        }
+    }
+
     public void save(Connection conn) throws SQLException {
         String sql;
         if (this.id == 0) {

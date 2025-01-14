@@ -1,5 +1,6 @@
 package cz.cervenka.databaseproject.database.entities;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ public class UserEntity {
     private int id;
     private String name;
     private String email;
+    private String password;
     private boolean isActive;
 
     public UserEntity() {
@@ -89,15 +91,29 @@ public class UserEntity {
         }
     }
 
-    public static List<String> generateReport(Connection conn) throws SQLException {
-        List<String> report = new ArrayList<>();
-        String sql = "SELECT COUNT(*) AS UserCount, isActive FROM [user] GROUP BY isActive";
-        try (Statement statement = conn.createStatement(); ResultSet result = statement.executeQuery(sql)) {
-            while (result.next()) {
-                report.add("Active: " + result.getBoolean("IsActive") + " - Count: " + result.getInt("UserCount"));
+    public boolean isValid(Connection conn) throws SQLException {
+        String query = "SELECT [user].password FROM [user] WHERE email = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, this.email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    return checkPassword(this.password); // Compares raw password with stored hash
+                }
             }
         }
-        return report;
+        return false;
+    }
+
+
+    public void hashPassword() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        this.password = encoder.encode(this.password);
+    }
+
+    public boolean checkPassword(String rawPassword) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        return encoder.matches(rawPassword, this.password);
     }
 
 
