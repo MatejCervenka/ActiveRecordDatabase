@@ -116,7 +116,7 @@ public class UserController {
 
             if (user.isValid(conn)) {
                 session.setAttribute("loggedUser", user);
-                return "home";
+                return "redirect:/home";
             }
         }
         return "login";

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Order Confirmation</title>
+    <link rel="stylesheet" th:href="@{style.css}">
+</head>
+<body>
+<h1>Order Confirmation</h1>
+<div th:if="${orderDetails}">
+    <h2>Order Number: <span th:text="${orderDetails[0]['orderNumber']}"></span></h2>
+    <p>Order Date: <span th:text="${#dates.format(orderDetails[0]['orderDate'], 'yyyy-MM-dd')}"></span></p>
+    <p>Total Price: <span th:text="${orderDetails[0]['totalPrice']}"></span></p>
+    <h3>Customer Details:</h3>
+    <p>Name: <span th:text="${orderDetails[0]['name']}"></span> <span th:text="${orderDetails[0]['surname']}"></span></p>
+    <p>Email: <span th:text="${orderDetails[0]['email']}"></span></p>
+    <h3>Products:</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="detail : ${orderDetails}">
+            <td th:text="${detail['productName']}"></td>
+            <td th:text="${detail['quantity']}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

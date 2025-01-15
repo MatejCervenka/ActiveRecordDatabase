@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Checkout</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
 <h1>Checkout</h1>
-<form th:action="@{/orders/checkout}" method="post" th:object="${customer}">
+<form th:action="@{/order}" method="post" th:object="${customer}">
     <label for="name">Name:</label>
     <input type="text" id="name" th:field="*{name}" required/><br/>
     <label for="surname">Surname:</label>

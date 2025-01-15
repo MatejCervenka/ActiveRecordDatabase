@@ -3,8 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
+<table>
+    <thead>
+    <tr>
+        <th>Product Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Total</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${cart}">
+        <td th:text="${item.productName}"></td>
+        <td th:text="${item.productPrice}"></td>
+        <td>
+            <form th:action="@{/cart/update}" method="post">
+                <input type="hidden" name="productId" th:value="${item.productId}" />
+                <input type="number" name="quantity" th:value="${item.quantity}" min="1" />
+                <button type="submit">Update</button>
+            </form>
+        </td>
+        <td th:text="${item.productPrice * item.quantity}"></td>
+        <td>
+            <form th:action="@{/cart/delete}" method="post">
+                <input type="hidden" name="productId" th:value="${item.productId}" />
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<form th:action="@{/cart/checkout}" method="post">
+    <button type="submit">Proceed to Checkout</button>
+</form>
+
+<button onclick="window.location.href='/home'">Back</button>
 
 </body>
 </html>

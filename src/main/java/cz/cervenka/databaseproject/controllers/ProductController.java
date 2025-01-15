@@ -3,10 +3,12 @@ package cz.cervenka.databaseproject.controllers;
 import cz.cervenka.databaseproject.database.entities.CategoryEntity;
 import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -46,8 +48,12 @@ public class ProductController {
         return "category_products";
     }
 
+    @GetMapping("/previous-page")
+    public void logout(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/home");
+    }
 
-    @PostMapping("/add")
+    /*@PostMapping("/add")
     public String addProduct(@ModelAttribute("newProduct") ProductEntity product) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             product.save(conn);
@@ -93,5 +99,5 @@ public class ProductController {
             }
         }
         return "redirect:/products";
-    }
+    }*/
 }

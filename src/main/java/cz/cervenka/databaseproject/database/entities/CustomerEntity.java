@@ -1,9 +1,6 @@
 package cz.cervenka.databaseproject.database.entities;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class CustomerEntity {
 
@@ -14,25 +11,60 @@ public class CustomerEntity {
     private String phone;
     private boolean subscribe;
 
-    // Getters and setters...
+    public CustomerEntity() {
+    }
+
+    public CustomerEntity(int id, String name, String surname, String email, String phone, boolean subscribe) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.phone = phone;
+        this.subscribe = subscribe;
+    }
+
+    public CustomerEntity(String name, String surname, String email, String phone, boolean subscribe) {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.phone = phone;
+        this.subscribe = subscribe;
+    }
 
     public void save(Connection conn) throws SQLException {
-        String query = "INSERT INTO customer (name, surname, email, phone, subscribe) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, this.name);
-            stmt.setString(2, this.surname);
-            stmt.setString(3, this.email);
-            stmt.setString(4, this.phone);
-            stmt.setBoolean(5, this.subscribe);
-            stmt.executeUpdate();
+        if (this.id == 0) {
+            String sql = "INSERT INTO customer (name, surname, email, phone, subscribe) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, this.name);
+                statement.setString(2, this.surname);
+                statement.setString(3, this.email);
+                statement.setString(4, this.phone);
+                statement.setBoolean(5, this.subscribe);
+                statement.executeUpdate();
+                ResultSet keys = statement.getGeneratedKeys();
+                if (keys.next()) {
+                    this.id = keys.getInt(1);
+                }
+            }
+        } else {
+            String sql = "UPDATE customer SET name = ?, surname = ?, email = ?, phone = ?, subscribe = ? WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, this.name);
+                statement.setString(2, this.surname);
+                statement.setString(3, this.email);
+                statement.setString(4, this.phone);
+                statement.setBoolean(5, this.subscribe);
+                statement.setInt(6, this.id);
+                statement.executeUpdate();
+            }
         }
     }
 
     public static CustomerEntity findById(int id, Connection conn) throws SQLException {
         String query = "SELECT * FROM customer WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement statement = conn.prepareStatement(query)) {
+            statement.setInt(1, id);
+            try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
                     CustomerEntity customer = new CustomerEntity();
                     customer.setId(rs.getInt("id"));

@@ -125,7 +125,7 @@ public class UserEntity {
                 statement.setString(2, this.surname);
                 statement.setString(3, this.password);
                 statement.setString(4, this.email);
-                statement.setString(4, this.role.name());
+                statement.setString(5, this.role.name());
                 statement.setInt(6, this.id);
                 statement.executeUpdate();
             }
