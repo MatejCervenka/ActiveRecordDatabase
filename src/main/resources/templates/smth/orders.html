@@ -23,7 +23,7 @@
         <td th:text="${order.id}"></td>
         <td th:text="${order.user_name}"></td>
         <td th:text="${order.orderDate}"></td>
-        <td th:text="${order.total}"></td>
+        <td th:text="${order.totalPrice}"></td>
         <td>
             <a th:href="@{'/orders/edit/' + ${order.id}}" class="button-link">Edit</a>
             <a th:href="@{'/orders/delete/' + ${order.id}}" onclick="return confirm('Are you sure?')" class="button-link">Delete</a>
@@ -39,7 +39,7 @@
     <h2>Add Order</h2>
     <form th:action="@{/orders/add}" th:object="${newOrder}" method="post">
         <label for="addUser">User:</label>
-        <select id="addUser" th:field="*{user_id}" required>
+        <select id="addUser" th:field="*{customer_id}" required>
             <option
                     th:each="user : ${users}"
                     th:value="${user.id}"
@@ -49,7 +49,7 @@
         <label for="addOrderDate">Price:</label>
         <input type="date" id="addOrderDate" th:field="*{orderDate}" required/><br/>
         <label for="addTotal">Total:</label>
-        <input type="number" id="addTotal" th:field="*{total}" step="0.1" required/><br/>
+        <input type="number" id="addTotal" th:field="*{totalPrice}" step="0.1" required/><br/>
         <br/>
         <button type="submit">Add</button>
         <button onclick="toggleForm()">Cancel</button>
@@ -61,7 +61,7 @@
     <form th:action="@{/orders/edit}" th:object="${editOrder}" method="post">
         <input type="hidden" th:field="*{id}"/>
         <label for="editUser">User:</label>
-        <select id="editUser" th:field="*{user_id}" required>
+        <select id="editUser" th:field="*{customer_id}" required>
             <option
                     th:each="user : ${users}"
                     th:value="${user.id}"
@@ -71,7 +71,7 @@
         <label for="editOrderDate">Price:</label>
         <input type="date" id="editOrderDate" th:field="*{orderDate}" required/><br/>
         <label for="editTotal">Total:</label>
-        <input type="number" id="editTotal" th:field="*{total}" step="0.1" required/><br/>
+        <input type="number" id="editTotal" th:field="*{totalPrice}" step="0.1" required/><br/>
         <br/>
         <button type="submit">Save</button>
         <button type="button" onclick="toggleForm()">Cancel</button>

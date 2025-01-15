@@ -43,7 +43,7 @@ public class ProductController {
             model.addAttribute("products", products);
             model.addAttribute("category", category);
         }
-        return "category-products";
+        return "category_products";
     }
 
 

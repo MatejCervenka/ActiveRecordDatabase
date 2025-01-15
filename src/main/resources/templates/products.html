@@ -1,30 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
 <h1>Products</h1>
 <table>
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Category</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="product : ${products}">
-        <td th:text="${product.name}"></td>
-        <td th:text="${product.category_name}"></td>
-        <td th:text="${product.price}"></td>
-        <td th:text="${product.stock}"></td>
-        <td>
-            <form th:action="@{/orders/checkout}" method="get">
-                <input type="hidden" th:value="${product.id}" name="productId"/>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Category</th>
+    <th>Price</th>
+    <th>Stock</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="product : ${products}">
+    <td th:text="${product.name}"></td>
+    <td th:text="${product.category_name}"></td>
+    <td th:text="${product.price}"></td>
+    <td th:text="${product.stock}"></td>
+    <td>
+      <form th:action="@{/orders/checkout}" method="get">
+        <input type="hidden" th:value="${product.id}" name="productId"/>
 
-                <label for="quantity">Quantity:</label>
-                <input id="quantity" type="number" name="quantity" placeholder="Quantity" required/>
+        <label for="quantity">Quantity:</label>
+        <input id="quantity" type="number" name="quantity" placeholder="Quantity" required/>
 
-                <button type="submit">Buy</button>
-            </form>
-        </td>
-    </tr>
-    </tbody>
+        <button type="submit">Buy</button>
+      </form>
+    </td>
+  </tr>
+  </tbody>
 </table>
+</body>
+</html>

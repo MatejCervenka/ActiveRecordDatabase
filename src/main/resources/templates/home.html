@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
     <h1>Database</h1>
 
-    <button onclick="window.location.href='/products'">Show Products</button>
+    <button onclick="window.location.href='/products'">Products</button>
 
-    <button onclick="window.location.href='/categories'">Show Categories</button>
+    <button onclick="window.location.href='/category_products'">Register</button>
 
-    <button onclick="window.location.href='/orders'">Show Orders</button>
+    <button onclick="window.location.href='/cart'">Cart</button>
 
-    <button onclick="window.location.href='/users'">Show Users</button>
-
-    <button onclick="window.location.href='/order-products'">Show Ordered Products</button>
+    <button onclick="window.location.href='/users'">Logout</button>
 </body>
 </html>

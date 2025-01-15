@@ -57,17 +57,18 @@ public class OrderController {
         return "redirect:/products";
     }
 
+
     @PostMapping("/add")
-    public String addOrder(@ModelAttribute("newOrder") OrderEntity user) throws SQLException {
+    public String addOrder(@ModelAttribute("newOrder") OrderEntity order) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            user.save(conn);
+            order.save(conn);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return "redirect:/orders";
     }
 
-    @GetMapping("/edit/{id}")
+    /*@GetMapping("/edit/{id}")
     public String showEditOrderForm(@PathVariable int id, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             OrderEntity order = OrderEntity.findById(id, conn);
@@ -104,5 +105,5 @@ public class OrderController {
             }
         }
         return "redirect:/orders";
-    }
+    }*/
 }
