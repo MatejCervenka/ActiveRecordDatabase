@@ -79,7 +79,6 @@ public class OrderEntity {
         return orderDetails;
     }
 
-    /* TODO:
     public static List<Map<String, Object>> findOrdersByCustomerId(int customerId, Connection conn) throws SQLException {
         String sql = "SELECT * FROM order_list WHERE customer_id = ?";
         List<Map<String, Object>> orders = new ArrayList<>();
@@ -99,7 +98,7 @@ public class OrderEntity {
             }
         }
         return orders;
-    }*/
+    }
 
     public static OrderEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT o.id, o.customer_id, o.orderNumber, o.orderDate, o.totalPrice, c.name AS customer_name, c.surname AS customer_surname " +
@@ -178,16 +177,38 @@ public class OrderEntity {
         }
     }
 
+    public void deleteWithProducts(Connection conn) throws SQLException {
+        String deleteOrderProductSQL = "DELETE FROM orderProduct WHERE order_id = ?";
+        String deleteOrderSQL = "DELETE FROM [order] WHERE id = ?";
 
-    public void delete(Connection conn) throws SQLException {
-        if (this.id != 0) {
-            String sql = "DELETE FROM [order] WHERE id = ?";
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setInt(1, this.id);
-                statement.executeUpdate();
+        try {
+            // Start transaction
+            conn.setAutoCommit(false);
+
+            // Delete records from orderProduct table
+            try (PreparedStatement stmt = conn.prepareStatement(deleteOrderProductSQL)) {
+                stmt.setInt(1, this.id);
+                stmt.executeUpdate();
             }
+
+            // Delete record from order table
+            try (PreparedStatement stmt = conn.prepareStatement(deleteOrderSQL)) {
+                stmt.setInt(1, this.id);
+                stmt.executeUpdate();
+            }
+
+            // Commit transaction
+            conn.commit();
+        } catch (SQLException e) {
+            // Rollback transaction in case of failure
+            conn.rollback();
+            throw new SQLException("Failed to delete order and associated products", e);
+        } finally {
+            // Restore default auto-commit behavior
+            conn.setAutoCommit(true);
         }
     }
+
 
 
     public int getId() {

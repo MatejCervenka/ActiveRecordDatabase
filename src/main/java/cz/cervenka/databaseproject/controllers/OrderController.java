@@ -39,7 +39,6 @@ public class OrderController {
         return "orders";
     }
 
-    /* TODO:
     @GetMapping("/my-orders")
     public String viewMyOrders(HttpSession session, Model model, Connection conn) {
         UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
@@ -56,7 +55,7 @@ public class OrderController {
             model.addAttribute("error", "Failed to retrieve your orders.");
             return "error";
         }
-    }*/
+    }
 
     @GetMapping("/checkout")
     public String showCheckoutForm(Model model) {
@@ -78,8 +77,8 @@ public class OrderController {
     }
 
     @GetMapping("/confirmation/{orderNumber}")
-    public String showOrderConfirmation(@PathVariable String orderNumber, Model model, Connection conn) {
-        try {
+    public String showOrderConfirmation(@PathVariable String orderNumber, Model model) {
+        try (Connection conn = dbConnection.getConnection()) {
             List<Map<String, Object>> orderDetails = OrderEntity.findOrderDetailsByNumber(orderNumber, conn);
             model.addAttribute("orderDetails", orderDetails);
             return "confirmation";
@@ -89,7 +88,6 @@ public class OrderController {
             return "error";
         }
     }
-
 
     @PostMapping
     public String placeOrder(@RequestParam String name, @RequestParam String surname,
@@ -126,6 +124,25 @@ public class OrderController {
         session.removeAttribute("cart");
         return "redirect:/order/confirmation/" + generatedOrderNumber;
     }
+
+    @GetMapping("/delete/{id}")
+    public String deleteOrder(@PathVariable int id, Model model) {
+        try (Connection conn = dbConnection.getConnection()) {
+            OrderEntity order = OrderEntity.findById(id, conn);
+            if (order != null) {
+                order.deleteWithProducts(conn);
+            } else {
+                model.addAttribute("error", "Order not found.");
+                return "error";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Failed to delete the order.");
+            return "error";
+        }
+        return "redirect:/order/list";
+    }
+
 
     /*@PostMapping("/add")
     public String addOrder(@ModelAttribute("newOrder") OrderEntity order) throws SQLException {

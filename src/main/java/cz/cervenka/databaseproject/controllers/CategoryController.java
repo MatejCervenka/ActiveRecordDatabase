@@ -1,6 +1,7 @@
 package cz.cervenka.databaseproject.controllers;
 
 import cz.cervenka.databaseproject.database.entities.CategoryEntity;
+import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,18 +22,55 @@ public class CategoryController {
     }
 
     @GetMapping
-    public String listCategories(Model model) {
+    public String listProducts(Model model) {
         try (Connection conn = dbConnection.getConnection()) {
+            List<ProductEntity> products = ProductEntity.getAll(conn);
             List<CategoryEntity> categories = CategoryEntity.getAll(conn);
+            model.addAttribute("products", products);
             model.addAttribute("categories", categories);
-            model.addAttribute("newCategory", new CategoryEntity());
+            model.addAttribute("newProduct", new ProductEntity());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return "categories";
+        return "category_products";
+    }
+    @PostMapping("/products")
+    public String listProductsByCategory(@RequestParam(required = false) Integer categoryId, Model model) {
+        try (Connection conn = dbConnection.getConnection()) {
+            List<CategoryEntity> categories = CategoryEntity.getAll(conn);
+            model.addAttribute("categories", categories);
+
+            if (categoryId != null) {
+                List<ProductEntity> products = ProductEntity.findByCategory(categoryId, conn);
+                model.addAttribute("products", products);
+                CategoryEntity selectedCategory = CategoryEntity.findById(categoryId, conn);
+                model.addAttribute("selectedCategory", selectedCategory);
+            } else {
+                model.addAttribute("products", List.of());
+                model.addAttribute("selectedCategory", null);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "category_products";
     }
 
-    @PostMapping("/add")
+    /*@PostMapping("/products")
+    public String getProductsByCategory(@RequestParam("categoryId") int categoryId, Model model) {
+        try (Connection conn = dbConnection.getConnection()) {
+            List<ProductEntity> products = ProductEntity.findByCategory(categoryId, conn);
+            List<CategoryEntity> categories = CategoryEntity.getAll(conn);
+            model.addAttribute("categories", categories);
+            model.addAttribute("products", products);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error fetching products for the selected category.");
+        }
+        return "category_products";
+    }*/
+
+
+    /*@PostMapping("/add")
     public String addCategory(@ModelAttribute("newCategory") CategoryEntity user) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             user.save(conn);
@@ -75,5 +113,5 @@ public class CategoryController {
             }
         }
         return "redirect:/categories";
-    }
+    }*/
 }
