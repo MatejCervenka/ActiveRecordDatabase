@@ -25,7 +25,7 @@ public class OrderController {
         this.dbConnection = dbConnection;
     }
 
-    @GetMapping("/list")
+    /*@GetMapping("/list")
     public String listOrders(Model model) {
         try (Connection conn = dbConnection.getConnection()) {
             List<OrderEntity> orders = OrderEntity.getAll(conn);
@@ -37,25 +37,28 @@ public class OrderController {
             e.printStackTrace();
         }
         return "orders";
-    }
+    }*/
 
-    @GetMapping("/my-orders")
-    public String viewMyOrders(HttpSession session, Model model, Connection conn) {
-        UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
-        if (loggedUser == null) {
-            return "redirect:/login";
-        }
+    @GetMapping
+    public String viewMyOrders(HttpSession session, Model model) throws SQLException {
+        try (Connection conn = dbConnection.getConnection()) {
+            UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
+            if (loggedUser == null) {
+                return "redirect:/login";
+            }
 
-        try {
-            List<Map<String, Object>> orders = OrderEntity.findOrdersByCustomerId(loggedUser.getId(), conn);
+            CustomerEntity customer = CustomerEntity.findByUserId(loggedUser.getId(), conn);
+            if (customer == null) {
+                model.addAttribute("error", "No customer linked to this user.");
+                return "orders";
+            }
+
+            List<Map<String, Object>> orders = OrderEntity.findOrdersByUserId(loggedUser.getId(), conn);
             model.addAttribute("orders", orders);
             return "orders";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            model.addAttribute("error", "Failed to retrieve your orders.");
-            return "error";
         }
     }
+
 
     @GetMapping("/checkout")
     public String showCheckoutForm(Model model) {
@@ -95,53 +98,106 @@ public class OrderController {
                              HttpSession session, Model model) throws SQLException {
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         if (cart == null || cart.isEmpty()) {
+            model.addAttribute("error", "Your cart is empty.");
             return "redirect:/cart";
+        }
+
+        UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
+        if (loggedUser == null) {
+            return "redirect:/login";
         }
 
         String generatedOrderNumber = generateOrderNumber();
 
         try (Connection conn = dbConnection.getConnection()) {
-            CustomerEntity customer = new CustomerEntity(0, name, surname, email, phone, false);
-            customer.save(conn);
+            conn.setAutoCommit(false);
 
-            int customerId = customer.getId();
-            if (customerId == 0) {
-                throw new SQLException("Failed to save customer.");
+            try {
+                CustomerEntity customer = new CustomerEntity(0, name, surname, email, phone, false, loggedUser.getId());
+                customer.save(conn);
+                int customerId = customer.getId();
+                if (customerId == 0) {
+                    throw new SQLException("Failed to save customer.");
+                }
+
+                // Create order
+                OrderEntity order = new OrderEntity(0, customerId, LocalDate.now(), generatedOrderNumber,
+                        calculateTotalPrice(cart), name, surname, 0);
+                order.save(conn);
+
+                // Link cart items to order and validate stock
+                for (OrderProductEntity item : cart) {
+                    ProductEntity product = ProductEntity.findById(item.getProductId(), conn);
+                    if (product == null || product.getStock() < item.getQuantity()) {
+                        throw new SQLException("Insufficient stock for product: " + item.getProductName());
+                    }
+
+                    // Deduct stock
+                    product.setStock(product.getStock() - item.getQuantity());
+                    product.save(conn);
+
+                    // Save order product
+                    OrderProductEntity orderProduct = new OrderProductEntity(0, order.getId(), item.getProductId(),
+                            item.getQuantity(), item.getProductPrice(),
+                            item.getProductName(), item.getStock());
+                    orderProduct.save(conn);
+                }
+
+                conn.commit(); // Commit transaction
+                session.removeAttribute("cart"); // Clear cart
+                return "redirect:/order/confirmation/" + generatedOrderNumber;
+
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback transaction in case of error
+                model.addAttribute("error", "Failed to place the order: " + e.getMessage());
+                return "checkout";
             }
-
-            OrderEntity order = new OrderEntity(0, customerId, LocalDate.now(), generatedOrderNumber, calculateTotalPrice(cart), name, surname);
-            order.save(conn);
-
-            for (OrderProductEntity item : cart) {
-                OrderProductEntity orderProduct = new OrderProductEntity(0, order.getId(), item.getProductId(),
-                        item.getQuantity(), item.getProductPrice(), item.getProductName());
-                orderProduct.save(conn);
-            }
-
-            model.addAttribute("orderNumber", generatedOrderNumber);
         }
-
-        session.removeAttribute("cart");
-        return "redirect:/order/confirmation/" + generatedOrderNumber;
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable int id, Model model) {
+
+    @GetMapping("/delete/{orderNumber}")
+    public String deleteOrder(@PathVariable String orderNumber, Model model) {
         try (Connection conn = dbConnection.getConnection()) {
-            OrderEntity order = OrderEntity.findById(id, conn);
-            if (order != null) {
-                order.deleteWithProducts(conn);
-            } else {
-                model.addAttribute("error", "Order not found.");
+            conn.setAutoCommit(false);
+
+            try {
+                OrderEntity order = OrderEntity.findByOrderNumber(orderNumber, conn);
+                if (order != null) {
+                    List<OrderProductEntity> orderProducts = OrderProductEntity.findByOrderId(order.getId(), conn);
+
+                    for (OrderProductEntity orderProduct : orderProducts) {
+                        ProductEntity product = ProductEntity.findById(orderProduct.getProductId(), conn);
+                        if (product != null) {
+                            // Increase the stock of the product based on the quantity ordered
+                            product.setStock(product.getStock() + orderProduct.getQuantity());
+                            product.save(conn);  // Save the updated product stock
+                        }
+                    }
+
+                    order.deleteWithProducts(conn);
+                } else {
+                    model.addAttribute("error", "Order not found.");
+                    return "error";
+                }
+
+                conn.commit();
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+                model.addAttribute("error", "Failed to delete the order.");
                 return "error";
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            model.addAttribute("error", "Failed to delete the order.");
+            model.addAttribute("error", "Database error occurred.");
             return "error";
         }
-        return "redirect:/order/list";
+
+        return "redirect:/order";
     }
+
+
 
 
     /*@PostMapping("/add")

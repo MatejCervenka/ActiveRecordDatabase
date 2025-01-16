@@ -10,17 +10,19 @@ public class CustomerEntity {
     private String email;
     private String phone;
     private boolean subscribe;
+    private int user_id;
 
     public CustomerEntity() {
     }
 
-    public CustomerEntity(int id, String name, String surname, String email, String phone, boolean subscribe) {
+    public CustomerEntity(int id, String name, String surname, String email, String phone, boolean subscribe, int userId) {
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.phone = phone;
         this.subscribe = subscribe;
+        this.user_id = userId;
     }
 
     public CustomerEntity(String name, String surname, String email, String phone, boolean subscribe) {
@@ -33,13 +35,14 @@ public class CustomerEntity {
 
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
-            String sql = "INSERT INTO customer (name, surname, email, phone, subscribe) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO customer (name, surname, email, phone, subscribe, user_id) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, this.name);
                 statement.setString(2, this.surname);
                 statement.setString(3, this.email);
                 statement.setString(4, this.phone);
                 statement.setBoolean(5, this.subscribe);
+                statement.setInt(6, this.user_id);
                 statement.executeUpdate();
                 ResultSet keys = statement.getGeneratedKeys();
                 if (keys.next()) {
@@ -47,14 +50,14 @@ public class CustomerEntity {
                 }
             }
         } else {
-            String sql = "UPDATE customer SET name = ?, surname = ?, email = ?, phone = ?, subscribe = ? WHERE id = ?";
+            String sql = "UPDATE customer SET name = ?, surname = ?, email = ?, phone = ?, subscribe = ? , user_id = ? WHERE id = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setString(1, this.name);
                 statement.setString(2, this.surname);
                 statement.setString(3, this.email);
                 statement.setString(4, this.phone);
                 statement.setBoolean(5, this.subscribe);
-                statement.setInt(6, this.id);
+                statement.setInt(6, this.user_id);
                 statement.executeUpdate();
             }
         }
@@ -73,6 +76,7 @@ public class CustomerEntity {
                     customer.setEmail(rs.getString("email"));
                     customer.setPhone(rs.getString("phone"));
                     customer.setSubscribe(rs.getBoolean("subscribe"));
+                    customer.setUser_id(rs.getInt("user_id"));
                     return customer;
                 } else {
                     return null;
@@ -80,6 +84,28 @@ public class CustomerEntity {
             }
         }
     }
+
+    public static CustomerEntity findByUserId(int userId, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM customer WHERE user_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new CustomerEntity(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("surname"),
+                            rs.getString("email"),
+                            rs.getString("phone"),
+                            rs.getBoolean("subscribe"),
+                            rs.getInt("user_id")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
 
     public int getId() {
         return id;
@@ -127,5 +153,13 @@ public class CustomerEntity {
 
     public void setSubscribe(boolean subscribe) {
         this.subscribe = subscribe;
+    }
+
+    public int getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
     }
 }

@@ -1,7 +1,6 @@
 package cz.cervenka.databaseproject.database.entities;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,17 +11,19 @@ public class OrderProductEntity {
     private int quantity;
     private double productPrice;
     private String product_name;
+    private int stock;
 
     public OrderProductEntity() {
     }
 
-    public OrderProductEntity(int id, int orderId, int productId, int quantity, double productPrice, String productName) {
+    public OrderProductEntity(int id, int orderId, int productId, int quantity, double productPrice, String productName, int stock) {
         this.id = id;
         this.orderId = orderId;
         this.productId = productId;
         this.quantity = quantity;
         this.productPrice = productPrice;
         this.product_name = productName;
+        this.stock = stock;
     }
 
     public void save(Connection conn) throws SQLException {
@@ -68,7 +69,8 @@ public class OrderProductEntity {
                             result.getInt("product_id"),
                             result.getInt("quantity"),
                             result.getDouble("totalPrice"),
-                            result.getString("product_name")));
+                            result.getString("product_name"),
+                            result.getInt("stock")));
                 }
             }
         }
@@ -76,11 +78,11 @@ public class OrderProductEntity {
     }
 
     public static OrderProductEntity findByOrderTotalAndProductName(double total, String productName, Connection conn) throws SQLException {
-        String sql = "SELECT oP.id, oP.order_id, oP.product_id, oP.quantity, o.totalPrice as total, p.name AS product_name " +
+        String sql = "SELECT oP.id, oP.order_id, oP.product_id, oP.quantity, o.totalPrice as total, p.name AS product_name, p.stock AS stock " +
                 "FROM orderProduct oP " +
                 "JOIN [order] o ON oP.order_id = o.id " +
                 "JOIN product p ON oP.product_id = p.id " +
-                "WHERE totalPrice = ? AND name = ?";
+                "WHERE totalPrice = ? AND name = ? AND stock = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setDouble(1, total);
             statement.setString(2, productName);
@@ -92,7 +94,8 @@ public class OrderProductEntity {
                             result.getInt("product_id"),
                             result.getInt("quantity"),
                             result.getDouble("totalPrice"),
-                            result.getString("product_name"));
+                            result.getString("product_name"),
+                            result.getInt("stock"));
                 } else {
                     return null;
                 }
@@ -156,5 +159,25 @@ public class OrderProductEntity {
 
     public int getId() {
         return id;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public void setProductPrice(double productPrice) {
+        this.productPrice = productPrice;
+    }
+
+    public void setProduct_name(String product_name) {
+        this.product_name = product_name;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
     }
 }

@@ -5,7 +5,6 @@ import cz.cervenka.databaseproject.database.entities.ProductEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,28 +29,35 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public String addToCart(@RequestParam int productId, HttpSession session) throws SQLException {
+    public String addToCart(@RequestParam int productId, HttpSession session, Model model) throws SQLException {
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         if (cart == null) {
             cart = new ArrayList<>();
         }
 
         try (Connection conn = dbConnection.getConnection()) {
-            ProductEntity product = ProductEntity.findById(productId, conn); // Fetch product from DB
+            ProductEntity product = ProductEntity.findById(productId, conn);
             if (product != null) {
-                // Check if the product is already in the cart
+                if (product.getStock() <= 0) {
+                    model.addAttribute("error", "This product is out of stock.");
+                    return "redirect:/products";
+                }
+
                 boolean exists = false;
                 for (OrderProductEntity item : cart) {
                     if (item.getProductId() == productId) {
-                        item.setQuantity(item.getQuantity() + 1); // Increment quantity
+                        if (item.getQuantity() + 1 > product.getStock()) {
+                            model.addAttribute("error", "You cannot add more than available stock.");
+                            return "redirect:/products";
+                        }
+                        item.setQuantity(item.getQuantity() + 1);
                         exists = true;
                         break;
                     }
                 }
 
                 if (!exists) {
-                    // Add new product to cart
-                    cart.add(new OrderProductEntity(0, 0, product.getId(), 1, product.getPrice(), product.getName()));
+                    cart.add(new OrderProductEntity(0, 0, product.getId(), 1, product.getPrice(), product.getName(), product.getStock()));
                 }
             }
         }
@@ -68,13 +74,21 @@ public class CartController {
     }
 
     @PostMapping("/update")
-    public String updateQuantity(@RequestParam int productId, @RequestParam int quantity, HttpSession session) {
+    public String updateQuantity(@RequestParam int productId, @RequestParam int quantity, HttpSession session, Model model) throws SQLException {
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         if (cart != null) {
-            for (OrderProductEntity item : cart) {
-                if (item.getProductId() == productId) {
-                    item.setQuantity(quantity);
-                    break;
+            try (Connection conn = dbConnection.getConnection()) {
+                ProductEntity product = ProductEntity.findById(productId, conn);
+                if (product != null && (quantity < 1 || quantity > product.getStock())) {
+                    model.addAttribute("error", "Invalid quantity selected.");
+                    return "redirect:/cart";
+                }
+
+                for (OrderProductEntity item : cart) {
+                    if (item.getProductId() == productId) {
+                        item.setQuantity(quantity);
+                        break;
+                    }
                 }
             }
         }
@@ -89,6 +103,7 @@ public class CartController {
         }
         return "redirect:/cart";
     }
+
 
     @PostMapping("/checkout")
     public String proceedToCheckout() {

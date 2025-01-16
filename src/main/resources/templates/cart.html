@@ -10,6 +10,7 @@
     <thead>
     <tr>
         <th>Product Name</th>
+        <th>Stock</th>
         <th>Price</th>
         <th>Quantity</th>
         <th>Total</th>
@@ -19,6 +20,7 @@
     <tbody>
     <tr th:each="item : ${cart}">
         <td th:text="${item.productName}"></td>
+        <td th:text="${item.stock}"></td>
         <td th:text="${item.productPrice}"></td>
         <td>
             <form th:action="@{/cart/update}" method="post">

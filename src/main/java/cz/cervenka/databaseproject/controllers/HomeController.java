@@ -13,11 +13,16 @@ public class HomeController {
 
     @GetMapping
     public String login() {
-        return "redirect:/home";
+        return "redirect:/login";
     }
 
     @GetMapping("/home")
     public String home() {
         return "home";
+    }
+
+    @GetMapping("/logout")
+    public String loginForm() {
+        return "redirect:/login";
     }
 }

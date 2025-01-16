@@ -127,17 +127,10 @@ public class ProductEntity {
         }
     }
 
-    public static List<String> generateStockReport(Connection conn) throws SQLException {
-        List<String> report = new ArrayList<>();
-        String sql = "SELECT Name, SUM(Stock) AS TotalStock FROM product GROUP BY Name";
-        try (Statement statement = conn.createStatement();
-             ResultSet result = statement.executeQuery(sql)) {
-            while (result.next()) {
-                report.add("Product: " + result.getString("name") + " - Total Stock: " + result.getInt("stock"));
-            }
-        }
-        return report;
+    public boolean isQuantityValid(int requestedQuantity) {
+        return requestedQuantity > 0 && requestedQuantity <= this.stock;
     }
+
 
     // Getters and setters
     public int getId() {

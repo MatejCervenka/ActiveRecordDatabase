@@ -15,11 +15,12 @@ public class OrderEntity {
     private double totalPrice;
     private String customer_name;
     private String customer_surname;
+    private int user_id;
 
     public OrderEntity() {
     }
 
-    public OrderEntity(int id, int userId, LocalDate orderDate, String orderNumber, double total, String customer_name, String customer_surname) {
+    public OrderEntity(int id, int userId, LocalDate orderDate, String orderNumber, double total, String customer_name, String customer_surname, int user_id) {
         this.id = id;
         this.customer_id = userId;
         this.orderDate = orderDate != null ? orderDate : LocalDate.now();
@@ -27,6 +28,11 @@ public class OrderEntity {
         this.totalPrice = total;
         this.customer_name = customer_name;
         this.customer_surname = customer_surname;
+        this.user_id = user_id;
+    }
+
+    public OrderEntity(int customer_id, LocalDate orderDate, String orderNumber, double totalPrice) {
+        this(0, customer_id, orderDate, orderNumber, totalPrice, null, null, 0);
     }
 
     public OrderEntity(CustomerEntity customer, ProductEntity product, int quantity) {
@@ -52,10 +58,31 @@ public class OrderEntity {
                         result.getString("orderNumber"),
                         result.getDouble("totalPrice"),
                         result.getString("customer_name"),
-                        result.getString("customer_surname")));
+                        result.getString("customer_surname"),
+                        result.getInt("customer_id")));
             }
         }
         return order;
+    }
+
+    public static OrderEntity findByOrderNumber(String orderNumber, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM order_list WHERE orderNumber =?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, orderNumber);
+            ResultSet result = statement.executeQuery();
+            if (result.next()) {
+                return new OrderEntity(
+                        result.getInt("id"),
+                        result.getInt("customer_id"),
+                        result.getDate("orderDate").toLocalDate(),
+                        result.getString("orderNumber"),
+                        result.getDouble("totalPrice"),
+                        result.getString("customer_name"),
+                        result.getString("customer_surname"),
+                        result.getInt("customer_id"));
+            }
+        }
+        return null;
     }
 
     public static List<Map<String, Object>> findOrderDetailsByNumber(String orderNumber, Connection conn) throws SQLException {
@@ -69,31 +96,35 @@ public class OrderEntity {
                 order.put("orderNumber", result.getString("orderNumber"));
                 order.put("orderDate", result.getDate("orderDate"));
                 order.put("totalPrice", result.getDouble("totalPrice"));
-                order.put("name", result.getString("name"));
-                order.put("surname", result.getString("surname"));
-                order.put("email", result.getString("email"));
+                order.put("name", result.getString("customer_name"));
+                order.put("surname", result.getString("customer_surname"));
+                order.put("email", result.getString("customer_email"));
                 order.put("quantity", result.getInt("quantity"));
+                order.put("productName", result.getString("product_name"));
                 orderDetails.add(order);
             }
         }
         return orderDetails;
     }
 
-    public static List<Map<String, Object>> findOrdersByCustomerId(int customerId, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM order_list WHERE customer_id = ?";
+    public static List<Map<String, Object>> findOrdersByUserId(int userId, Connection conn) throws SQLException {
+        String sql = """
+        SELECT * FROM order_list WHERE user_id = ?
+    """;
         List<Map<String, Object>> orders = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setInt(1, customerId);
+            statement.setInt(1, userId);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
                 Map<String, Object> order = new HashMap<>();
                 order.put("orderNumber", result.getString("orderNumber"));
                 order.put("orderDate", result.getDate("orderDate"));
                 order.put("totalPrice", result.getDouble("totalPrice"));
-                order.put("name", result.getString("name"));
-                order.put("surname", result.getString("surname"));
-                order.put("email", result.getString("email"));
+                order.put("customerName", result.getString("customer_name"));
+                order.put("surname", result.getString("customer_surname"));
+                order.put("email", result.getString("customer_email"));
                 order.put("quantity", result.getInt("quantity"));
+                order.put("productName", result.getString("product_name"));
                 orders.add(order);
             }
         }
@@ -116,7 +147,8 @@ public class OrderEntity {
                         result.getString("orderNumber"),
                         result.getDouble("totalPrice"),
                         result.getString("customer_name"),
-                        result.getString("customer_surname"));
+                        result.getString("customer_surname"),
+                        result.getInt("customer_id"));
             }
         }
         return null;
@@ -139,7 +171,8 @@ public class OrderEntity {
                         result.getString("orderNumber"),
                         result.getDouble("totalPrice"),
                         result.getString("customer_name"),
-                        result.getString("customer_surname")));
+                        result.getString("customer_surname"),
+                        result.getInt("customer_id")));
             }
         }
         return orders;
@@ -178,34 +211,16 @@ public class OrderEntity {
     }
 
     public void deleteWithProducts(Connection conn) throws SQLException {
-        String deleteOrderProductSQL = "DELETE FROM orderProduct WHERE order_id = ?";
-        String deleteOrderSQL = "DELETE FROM [order] WHERE id = ?";
+        try (PreparedStatement deleteOrderProductsStmt = conn.prepareStatement(
+                "DELETE FROM orderProduct WHERE order_id = ?");
+             PreparedStatement deleteOrderStmt = conn.prepareStatement(
+                     "DELETE FROM [order] WHERE id = ?")) {
 
-        try {
-            // Start transaction
-            conn.setAutoCommit(false);
+            deleteOrderProductsStmt.setInt(1, this.id);
+            deleteOrderProductsStmt.executeUpdate();
 
-            // Delete records from orderProduct table
-            try (PreparedStatement stmt = conn.prepareStatement(deleteOrderProductSQL)) {
-                stmt.setInt(1, this.id);
-                stmt.executeUpdate();
-            }
-
-            // Delete record from order table
-            try (PreparedStatement stmt = conn.prepareStatement(deleteOrderSQL)) {
-                stmt.setInt(1, this.id);
-                stmt.executeUpdate();
-            }
-
-            // Commit transaction
-            conn.commit();
-        } catch (SQLException e) {
-            // Rollback transaction in case of failure
-            conn.rollback();
-            throw new SQLException("Failed to delete order and associated products", e);
-        } finally {
-            // Restore default auto-commit behavior
-            conn.setAutoCommit(true);
+            deleteOrderStmt.setInt(1, this.id);
+            deleteOrderStmt.executeUpdate();
         }
     }
 
@@ -265,5 +280,21 @@ public class OrderEntity {
 
     public void setCustomer_surname(String customer_surname) {
         this.customer_surname = customer_surname;
+    }
+
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(String orderNumber) {
+        this.orderNumber = orderNumber;
+    }
+
+    public int getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
     }
 }
