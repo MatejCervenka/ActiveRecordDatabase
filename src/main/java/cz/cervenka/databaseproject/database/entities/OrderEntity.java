@@ -72,7 +72,7 @@ public class OrderEntity {
             ResultSet result = statement.executeQuery();
             if (result.next()) {
                 return new OrderEntity(
-                        result.getInt("id"),
+                        result.getInt("order_id"),
                         result.getInt("customer_id"),
                         result.getDate("orderDate").toLocalDate(),
                         result.getString("orderNumber"),
@@ -109,8 +109,8 @@ public class OrderEntity {
 
     public static List<Map<String, Object>> findOrdersByUserId(int userId, Connection conn) throws SQLException {
         String sql = """
-        SELECT * FROM order_list WHERE user_id = ?
-    """;
+            SELECT * FROM order_list WHERE user_id = ?
+        """;
         List<Map<String, Object>> orders = new ArrayList<>();
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setInt(1, userId);
@@ -186,7 +186,6 @@ public class OrderEntity {
                 statement.setInt(1, this.customer_id);
                 statement.setString(2, this.orderNumber);
 
-                // Ensure orderDate is set before saving
                 if (this.orderDate == null) {
                     this.orderDate = LocalDate.now();
                 }

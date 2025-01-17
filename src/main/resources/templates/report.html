@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h2 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        b {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+<h1>Summary Report</h1>
+<div class="container">
+    <h2>Customer Statistics</h2>
+    <p>Customer: <b th:text="${report.customerName}"></b></p>
+    <p>Total Orders: <b th:text="${report.totalOrders}"></b></p>
+    <p>Total Revenue: <b th:text="${report.totalRevenue}"></b></p>
+
+    <h2>Product Statistics</h2>
+    <p>Most Sold Product: <b th:text="${report.mostSoldProduct}"></b></p>
+    <p>Quantity Sold: <b th:text="${report.totalSold}"></b></p>
+    <p>Highest Value Product: <b th:text="${report.highestValueProduct}"></b></p>
+    <p>Maximum Value: <b th:text="${report.maxValue}"></b></p>
+</div>
+</body>
+</html>

@@ -50,6 +50,11 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
             <version>3.3.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.10.0</version>
+        </dependency>
     </dependencies>
 
     <build>

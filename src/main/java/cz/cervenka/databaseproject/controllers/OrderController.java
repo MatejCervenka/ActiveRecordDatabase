@@ -169,9 +169,8 @@ public class OrderController {
                     for (OrderProductEntity orderProduct : orderProducts) {
                         ProductEntity product = ProductEntity.findById(orderProduct.getProductId(), conn);
                         if (product != null) {
-                            // Increase the stock of the product based on the quantity ordered
                             product.setStock(product.getStock() + orderProduct.getQuantity());
-                            product.save(conn);  // Save the updated product stock
+                            product.save(conn);
                         }
                     }
 

@@ -54,9 +54,11 @@ public class OrderProductEntity {
         return null;
     }
 
-    // Find all by Order ID
     public static List<OrderProductEntity> findByOrderId(int orderId, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM orderProduct WHERE order_id = ?";
+        String sql = "SELECT op.id, oP.order_id, oP.product_id, oP.quantity, p.name AS product_name, p.price AS product_price, p.stock AS stock " +
+                "FROM orderProduct oP " +
+                "JOIN product p ON p.id = oP.product_id " +
+                "WHERE order_id = ?";
         List<OrderProductEntity> results = new ArrayList<>();
 
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -68,7 +70,7 @@ public class OrderProductEntity {
                             result.getInt("order_id"),
                             result.getInt("product_id"),
                             result.getInt("quantity"),
-                            result.getDouble("totalPrice"),
+                            result.getDouble("product_price"),
                             result.getString("product_name"),
                             result.getInt("stock")));
                 }
@@ -93,7 +95,7 @@ public class OrderProductEntity {
                             result.getInt("order_id"),
                             result.getInt("product_id"),
                             result.getInt("quantity"),
-                            result.getDouble("totalPrice"),
+                            result.getDouble("product_price"),
                             result.getString("product_name"),
                             result.getInt("stock"));
                 } else {
