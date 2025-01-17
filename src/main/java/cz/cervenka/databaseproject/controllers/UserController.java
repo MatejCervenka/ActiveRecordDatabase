@@ -30,12 +30,13 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute UserEntity user) throws SQLException {
+    public String registerUser(@ModelAttribute UserEntity user, HttpSession session) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             user.setPassword(UserEntity.hashPassword(user.getPassword()));
             user.save(conn);
         }
-        return "redirect:/login";
+        session.setAttribute("loggedUser", user);
+        return "redirect:/home";
     }
 
     @GetMapping("/login")
