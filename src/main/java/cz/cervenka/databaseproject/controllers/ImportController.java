@@ -21,26 +21,56 @@ public class ImportController {
         this.csvImportService = csvImportService;
     }
 
+    /**
+     * Displays the import form where users can upload a CSV file.
+     *
+     * @param model The model to pass attributes to the view.
+     * @return The view for the import form.
+     */
     @GetMapping
     public String showImportForm(Model model) {
         return "import";
     }
 
+    /**
+     * Handles the CSV file upload and import process.
+     * Validates the uploaded file, checks its size and format, and then attempts to process it.
+     * If the file is valid, it will be imported; otherwise, an error message is displayed.
+     *
+     * @param file The uploaded CSV file.
+     * @param model The model to pass attributes to the view.
+     * @return The view to display the result of the import process.
+     */
     @PostMapping
     public String importCsv(MultipartFile file, Model model) {
+        // Validate the uploaded file
         if (file.isEmpty() || !file.getOriginalFilename().endsWith(".csv")) {
             model.addAttribute("error", "Invalid file. Please upload a CSV file.");
-            return "error";
+            return "import";
+        }
+
+        // Check the file size
+        if (file.getSize() > 5 * 1024 * 1024) {
+            model.addAttribute("error", "File is too large. Maximum size is 5MB.");
+            return "import";
         }
 
         try {
+            // Validate the structure of the CSV file
+            if (!csvImportService.validateCsv(file)) {
+                model.addAttribute("error", "Invalid CSV structure. Please check the columns and data format.");
+                return "import";
+            }
+
+            // Import the CSV file
             csvImportService.importCsv(file);
             model.addAttribute("message", "File imported successfully!");
             return "success";
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("error", "Failed to import file: " + e.getMessage());
-            return "error";
+            return "import";
         }
     }
+
 }

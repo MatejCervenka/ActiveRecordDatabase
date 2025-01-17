@@ -1,5 +1,11 @@
 package cz.cervenka.databaseproject.services;
 
+/**
+ * Represents a summary report containing details about customer orders, most sold products, and highest value products.
+ * The `SummaryReport` class is used to store aggregated information about customer orders, product sales, and revenue.
+ * This class contains various fields to represent data such as the customer's name, total orders, total revenue,
+ * most sold product, highest value product, and their respective quantities or values.
+ */
 public class SummaryReport {
     private String customerName;
     private int totalOrders;

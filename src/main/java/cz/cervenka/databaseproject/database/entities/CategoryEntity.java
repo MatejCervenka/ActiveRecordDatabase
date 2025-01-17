@@ -16,6 +16,14 @@ public class CategoryEntity {
         this.name = name;
     }
 
+    /**
+     * Finds a category by its unique ID.
+     *
+     * @param id The category ID.
+     * @param conn The database connection.
+     * @return The `CategoryEntity` object representing the category, or `null` if no category is found.
+     * @throws SQLException If a database error occurs.
+     */
     public static CategoryEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT * FROM category WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -31,6 +39,13 @@ public class CategoryEntity {
         return null;
     }
 
+    /**
+     * Retrieves all categories from the database.
+     *
+     * @param conn The database connection.
+     * @return A list of all `CategoryEntity` objects.
+     * @throws SQLException If a database error occurs.
+     */
     public static List<CategoryEntity> getAll(Connection conn) throws SQLException {
         List<CategoryEntity> categories = new ArrayList<>();
         String sql = "SELECT * FROM category";
@@ -46,6 +61,12 @@ public class CategoryEntity {
         return categories;
     }
 
+    /**
+     * Saves the current category to the database. If the category already exists, it is updated.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
     public void save(Connection conn) throws SQLException {
         String sql;
         if (this.id == 0) {
@@ -68,8 +89,14 @@ public class CategoryEntity {
         }
     }
 
+    /**
+     * Deletes the category from the database.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
     public void delete(Connection conn) throws SQLException {
-        if (this.id!= 0) {
+        if (this.id != 0) {
             String sql = "DELETE FROM category WHERE id =?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
                 statement.setInt(1, this.id);

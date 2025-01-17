@@ -25,20 +25,16 @@ public class OrderController {
         this.dbConnection = dbConnection;
     }
 
-    /*@GetMapping("/list")
-    public String listOrders(Model model) {
-        try (Connection conn = dbConnection.getConnection()) {
-            List<OrderEntity> orders = OrderEntity.getAll(conn);
-            List<UserEntity> users = UserEntity.getAll(conn);
-            model.addAttribute("orders", orders);
-            model.addAttribute("users", users);
-            model.addAttribute("newOrder", new OrderEntity());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "orders";
-    }*/
 
+    /**
+     * Displays a list of orders for the logged-in user.
+     * If the user is not logged in or has no linked customer, an appropriate error message is displayed.
+     *
+     * @param session The HTTP session containing user information.
+     * @param model The model to pass attributes to the view.
+     * @return The view to display the user's orders.
+     * @throws SQLException If a database error occurs while retrieving orders.
+     */
     @GetMapping
     public String viewMyOrders(HttpSession session, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
@@ -59,7 +55,12 @@ public class OrderController {
         }
     }
 
-
+    /**
+     * Displays the checkout form for placing a new order.
+     *
+     * @param model The model to pass attributes to the view.
+     * @return The checkout view.
+     */
     @GetMapping("/checkout")
     public String showCheckoutForm(Model model) {
         model.addAttribute("order", new OrderEntity());
@@ -67,18 +68,44 @@ public class OrderController {
         return "checkout";
     }
 
+    /**
+     * Processes the checkout form to create a new order.
+     * It validates the selected product's stock and creates an order if valid.
+     *
+     * @param customer The customer information.
+     * @param productId The ID of the selected product.
+     * @param quantity The quantity of the product to be ordered.
+     * @param model The model to pass attributes to the view.
+     * @return The result view after processing the checkout.
+     * @throws SQLException If a database error occurs.
+     */
     @PostMapping("/checkout")
-    public String checkout(@ModelAttribute CustomerEntity customer, @RequestParam int productId, @RequestParam int quantity) throws SQLException {
+    public String checkout(@ModelAttribute CustomerEntity customer, @RequestParam int productId,
+                           @RequestParam int quantity, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
             ProductEntity product = ProductEntity.findById(productId, conn);
-            if (product != null && product.getStock() >= quantity) {
-                OrderEntity order = new OrderEntity(customer, product, quantity);
-                order.save(conn);
+            if (product == null) {
+                model.addAttribute("error", "Selected product not found.");
+                return "checkout";
             }
+            if (product.getStock() < quantity) {
+                model.addAttribute("error", "Insufficient stock for the selected product.");
+                return "checkout";
+            }
+
+            OrderEntity order = new OrderEntity(customer, product, quantity);
+            order.save(conn);
+            return "redirect:/home";
         }
-        return "redirect:/home";
     }
 
+    /**
+     * Displays the order confirmation page with the details of the specified order number.
+     *
+     * @param orderNumber The order number.
+     * @param model The model to pass attributes to the view.
+     * @return The order confirmation view.
+     */
     @GetMapping("/confirmation/{orderNumber}")
     public String showOrderConfirmation(@PathVariable String orderNumber, Model model) {
         try (Connection conn = dbConnection.getConnection()) {
@@ -88,18 +115,30 @@ public class OrderController {
         } catch (SQLException e) {
             e.printStackTrace();
             model.addAttribute("error", "Unable to retrieve order details.");
-            return "error";
+            return "checkout";
         }
     }
 
+    /**
+     * Places an order from the user's cart and processes the customer details.
+     * If the cart is empty or the customer details are invalid, an error message is displayed.
+     *
+     * @param name The customer's first name.
+     * @param surname The customer's last name.
+     * @param email The customer's email address.
+     * @param phone The customer's phone number.
+     * @param session The HTTP session containing cart and user information.
+     * @param model The model to pass attributes to the view.
+     * @return The result view after placing the order.
+     */
     @PostMapping
     public String placeOrder(@RequestParam String name, @RequestParam String surname,
                              @RequestParam String email, @RequestParam String phone,
-                             HttpSession session, Model model) throws SQLException {
+                             HttpSession session, Model model) {
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         if (cart == null || cart.isEmpty()) {
             model.addAttribute("error", "Your cart is empty.");
-            return "redirect:/cart";
+            return "checkout";
         }
 
         UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
@@ -107,55 +146,58 @@ public class OrderController {
             return "redirect:/login";
         }
 
-        String generatedOrderNumber = generateOrderNumber();
+        // Validate customer details
+        if (!isValidCustomer(name, surname, email, phone)) {
+            model.addAttribute("error", "Invalid input. Please check your details.");
+            return "checkout";
+        }
 
         try (Connection conn = dbConnection.getConnection()) {
             conn.setAutoCommit(false);
+            String generatedOrderNumber = generateOrderNumber();
 
             try {
                 CustomerEntity customer = new CustomerEntity(0, name, surname, email, phone, false, loggedUser.getId());
                 customer.save(conn);
-                int customerId = customer.getId();
-                if (customerId == 0) {
-                    throw new SQLException("Failed to save customer.");
-                }
-
-                // Create order
-                OrderEntity order = new OrderEntity(0, customerId, LocalDate.now(), generatedOrderNumber,
+                OrderEntity order = new OrderEntity(0, customer.getId(), LocalDate.now(), generatedOrderNumber,
                         calculateTotalPrice(cart), name, surname, 0);
                 order.save(conn);
 
-                // Link cart items to order and validate stock
                 for (OrderProductEntity item : cart) {
                     ProductEntity product = ProductEntity.findById(item.getProductId(), conn);
                     if (product == null || product.getStock() < item.getQuantity()) {
                         throw new SQLException("Insufficient stock for product: " + item.getProductName());
                     }
-
-                    // Deduct stock
                     product.setStock(product.getStock() - item.getQuantity());
                     product.save(conn);
 
-                    // Save order product
                     OrderProductEntity orderProduct = new OrderProductEntity(0, order.getId(), item.getProductId(),
-                            item.getQuantity(), item.getProductPrice(),
-                            item.getProductName(), item.getStock());
+                            item.getQuantity(), item.getProductPrice(), item.getProductName(), item.getStock());
                     orderProduct.save(conn);
                 }
 
-                conn.commit(); // Commit transaction
-                session.removeAttribute("cart"); // Clear cart
+                conn.commit();
+                session.removeAttribute("cart");
                 return "redirect:/order/confirmation/" + generatedOrderNumber;
 
             } catch (SQLException e) {
-                conn.rollback(); // Rollback transaction in case of error
-                model.addAttribute("error", "Failed to place the order: " + e.getMessage());
+                conn.rollback();
+                model.addAttribute("error", "Order failed: " + e.getMessage());
                 return "checkout";
             }
+        } catch (SQLException e) {
+            model.addAttribute("error", "Database error occurred. Please try again.");
+            return "checkout";
         }
     }
 
-
+    /**
+     * Deletes the specified order and restores the stock for the associated products.
+     *
+     * @param orderNumber The order number.
+     * @param model The model to pass attributes to the view.
+     * @return The result view after deleting the order.
+     */
     @GetMapping("/delete/{orderNumber}")
     public String deleteOrder(@PathVariable String orderNumber, Model model) {
         try (Connection conn = dbConnection.getConnection()) {
@@ -164,8 +206,9 @@ public class OrderController {
             try {
                 OrderEntity order = OrderEntity.findByOrderNumber(orderNumber, conn);
                 if (order != null) {
-                    List<OrderProductEntity> orderProducts = OrderProductEntity.findByOrderId(order.getId(), conn);
+                    CustomerEntity customer = CustomerEntity.findById(order.getCustomer_id(), conn);
 
+                    List<OrderProductEntity> orderProducts = OrderProductEntity.findByOrderId(order.getId(), conn);
                     for (OrderProductEntity orderProduct : orderProducts) {
                         ProductEntity product = ProductEntity.findById(orderProduct.getProductId(), conn);
                         if (product != null) {
@@ -175,6 +218,9 @@ public class OrderController {
                     }
 
                     order.deleteWithProducts(conn);
+                    if (customer != null) {
+                        customer.delete(conn);
+                    }
                 } else {
                     model.addAttribute("error", "Order not found.");
                     return "error";
@@ -196,58 +242,12 @@ public class OrderController {
         return "redirect:/order";
     }
 
-
-
-
-    /*@PostMapping("/add")
-    public String addOrder(@ModelAttribute("newOrder") OrderEntity order) throws SQLException {
-        try (Connection conn = dbConnection.getConnection()) {
-            order.save(conn);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "redirect:/orders";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String showEditOrderForm(@PathVariable int id, Model model) throws SQLException {
-        try (Connection conn = dbConnection.getConnection()) {
-            OrderEntity order = OrderEntity.findById(id, conn);
-            List<OrderEntity> orders = OrderEntity.getAll(conn);
-            List<UserEntity> users = UserEntity.getAll(conn);
-            model.addAttribute("orders", orders);
-            model.addAttribute("users", users);
-            model.addAttribute("editOrder", order);
-            model.addAttribute("newOrder", new OrderEntity());
-        }
-        return "orders";
-    }
-
-
-    @PostMapping("/edit")
-    public String updateOrder(@ModelAttribute("editOrder") OrderEntity order) throws SQLException {
-        try (Connection conn = dbConnection.getConnection()) {
-            if (order.getId() > 0) {
-                order.save(conn);
-            } else {
-                throw new IllegalArgumentException("Order ID is missing or invalid.");
-            }
-        }
-        return "redirect:/orders";
-    }
-
-
-    @GetMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable int id) throws SQLException {
-        try (Connection conn = dbConnection.getConnection()) {
-            OrderEntity order = OrderEntity.findById(id, conn);
-            if (order != null) {
-                order.delete(conn);
-            }
-        }
-        return "redirect:/orders";
-    }*/
-
+    /**
+     * Calculates the total price of the products in the cart.
+     *
+     * @param cart The list of products in the cart.
+     * @return The total price.
+     */
     public static double calculateTotalPrice(List<OrderProductEntity> cart) {
         if (cart == null || cart.isEmpty()) {
             return 0.0;
@@ -264,25 +264,79 @@ public class OrderController {
         return totalPrice;
     }
 
-
-    // here make the method
+    /**
+     * Generates a unique order number.
+     *
+     * @return A randomly generated order number.
+     */
     public static String generateOrderNumber() {
         Random random = new Random();
         StringBuilder orderNumber = new StringBuilder();
 
-        // Prefix "OBJ"
         orderNumber.append("OBJ");
 
-        // Generate random digits/letters (e.g., 12 characters)
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (int i = 0; i < 10; i++) {  // Adjust length as needed
+        for (int i = 0; i < 10; i++) {
             orderNumber.append(characters.charAt(random.nextInt(characters.length())));
         }
 
-        // Suffix "CZ"
         orderNumber.append("CZ");
 
         return orderNumber.toString();
+    }
+
+    /**
+     * Validates customer details for the order.
+     *
+     * @param name The customer's first name.
+     * @param surname The customer's last name.
+     * @param email The customer's email address.
+     * @param phone The customer's phone number.
+     * @return True if the customer details are valid, false otherwise.
+     */
+    private boolean isValidCustomer(String name, String surname, String email, String phone) {
+        return isValidName(name) && isValidSurname(surname) && isValidEmail(email) && isValidPhone(phone);
+    }
+
+    /**
+     * Validates the customer's name.
+     *
+     * @param name The customer's name.
+     * @return True if the name is valid, false otherwise.
+     */
+    private boolean isValidName(String name) {
+        return name != null && !name.trim().isEmpty();
+    }
+
+    /**
+     * Validates the customer's surname.
+     *
+     * @param surname The customer's surname.
+     * @return True if the surname is valid, false otherwise.
+     */
+    private boolean isValidSurname(String surname) {
+        return surname != null && !surname.trim().isEmpty();
+    }
+
+    /**
+     * Validates the customer's email address.
+     *
+     * @param email The customer's email.
+     * @return True if the email is valid, false otherwise.
+     */
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
+    /**
+     * Validates the customer's phone number.
+     *
+     * @param phone The customer's phone number.
+     * @return True if the phone number is valid, false otherwise.
+     */
+    private boolean isValidPhone(String phone) {
+        String phoneRegex = "^\\+?[0-9]{1,4}[-\\s]?[0-9]{1,15}$";
+        return phone != null && phone.matches(phoneRegex);
     }
 
 }

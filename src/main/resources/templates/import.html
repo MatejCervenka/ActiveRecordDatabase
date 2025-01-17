@@ -61,16 +61,31 @@
         .back-button:hover {
             background-color: #5a6268;
         }
+        .error-message {
+            color: #dc3545;
+            margin-top: 20px;
+        }
+        .success-message {
+            color: #28a745;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>Import CSV File</h1>
+
+    <div>
+        <p th:if="${error}" class="error-message" th:text="${error}"></p>
+        <p th:if="${message}" class="success-message" th:text="${message}"></p>
+    </div>
+
     <form action="/import" method="post" enctype="multipart/form-data">
         <label for="file">Choose a CSV file:</label>
         <input type="file" id="file" name="file" accept=".csv" required>
         <button type="submit">Upload</button>
     </form>
+
     <button class="back-button" onclick="window.location.href='/home'">Back</button>
 </div>
 </body>

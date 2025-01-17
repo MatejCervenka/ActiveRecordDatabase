@@ -33,6 +33,12 @@ public class CustomerEntity {
         this.subscribe = subscribe;
     }
 
+    /**
+     * Saves the current customer to the database. If the customer already exists, it is updated.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
             String sql = "INSERT INTO customer (name, surname, email, phone, subscribe, user_id) VALUES (?, ?, ?, ?, ?, ?)";
@@ -58,11 +64,20 @@ public class CustomerEntity {
                 statement.setString(4, this.phone);
                 statement.setBoolean(5, this.subscribe);
                 statement.setInt(6, this.user_id);
+                statement.setInt(7, this.id);
                 statement.executeUpdate();
             }
         }
     }
 
+    /**
+     * Finds a customer by their unique ID.
+     *
+     * @param id The customer ID.
+     * @param conn The database connection.
+     * @return The `CustomerEntity` object representing the customer, or `null` if no customer is found.
+     * @throws SQLException If a database error occurs.
+     */
     public static CustomerEntity findById(int id, Connection conn) throws SQLException {
         String query = "SELECT * FROM customer WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(query)) {
@@ -85,6 +100,14 @@ public class CustomerEntity {
         }
     }
 
+    /**
+     * Finds a customer by their associated user ID.
+     *
+     * @param userId The user ID.
+     * @param conn The database connection.
+     * @return The `CustomerEntity` object representing the customer, or `null` if no customer is found.
+     * @throws SQLException If a database error occurs.
+     */
     public static CustomerEntity findByUserId(int userId, Connection conn) throws SQLException {
         String sql = "SELECT * FROM customer WHERE user_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -104,6 +127,22 @@ public class CustomerEntity {
             }
         }
         return null;
+    }
+
+    /**
+     * Deletes the customer from the database.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
+    public void delete(Connection conn) throws SQLException {
+        if (this.id != 0) {
+            String sql = "DELETE FROM customer WHERE id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setInt(1, this.id);
+                statement.executeUpdate();
+            }
+        }
     }
 
 

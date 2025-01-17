@@ -9,6 +9,9 @@ import java.util.List;
 
 public class UserEntity {
 
+    /**
+     * Enum representing the role of a user.
+     */
     public enum Role {
         ADMIN, USER
     }
@@ -23,6 +26,16 @@ public class UserEntity {
     public UserEntity() {
     }
 
+    /**
+     * Constructs a new UserEntity with the provided details.
+     *
+     * @param userId   the user's ID
+     * @param name     the user's name
+     * @param surname  the user's surname
+     * @param password the user's password (will be hashed)
+     * @param email    the user's email
+     * @param role     the user's role (ADMIN or USER)
+     */
     public UserEntity(int userId, String name, String surname, String password, String email, Role role) {
         this.id = userId;
         this.name = name;
@@ -32,6 +45,13 @@ public class UserEntity {
         this.role = role;
     }
 
+    /**
+     * Retrieves all users from the database.
+     *
+     * @param conn the database connection
+     * @return a list of UserEntity objects
+     * @throws SQLException if a database error occurs
+     */
     public static List<UserEntity> getAll(Connection conn) throws SQLException {
         List<UserEntity> user = new ArrayList<>();
         String sql = "SELECT * FROM [user]";
@@ -52,6 +72,14 @@ public class UserEntity {
         return user;
     }
 
+    /**
+     * Retrieves a user by their ID from the database.
+     *
+     * @param id   the user's ID
+     * @param conn the database connection
+     * @return the UserEntity with the given ID, or null if not found
+     * @throws SQLException if a database error occurs
+     */
     public static UserEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT * FROM [user] WHERE id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -72,6 +100,14 @@ public class UserEntity {
         return null;
     }
 
+    /**
+     * Retrieves a user by their email from the database.
+     *
+     * @param email the user's email
+     * @param conn  the database connection
+     * @return the UserEntity with the given email, or null if not found
+     * @throws SQLException if a database error occurs
+     */
     public static UserEntity findByEmail(String email, Connection conn) throws SQLException {
         String sql = "SELECT * FROM [user] WHERE email = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -92,6 +128,12 @@ public class UserEntity {
         return null;
     }
 
+    /**
+     * Saves the current user to the database (inserts or updates).
+     *
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
             String checkSql = "SELECT COUNT(*) AS count FROM [user]";
@@ -132,6 +174,12 @@ public class UserEntity {
         }
     }
 
+    /**
+     * Deletes the current user from the database.
+     *
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public void delete(Connection conn) throws SQLException {
         if (this.id != 0) {
             String sql = "DELETE FROM [user] WHERE id = ?";
@@ -141,7 +189,6 @@ public class UserEntity {
             }
         }
     }
-
 
     /**
      * Hashes a given password using SHA-256.
@@ -165,6 +212,13 @@ public class UserEntity {
         }
     }
 
+    /**
+     * Verifies if the current user's email and password are valid.
+     *
+     * @param conn the database connection
+     * @return true if the credentials are valid, false otherwise
+     * @throws SQLException if a database error occurs
+     */
     public boolean isValid(Connection conn) throws SQLException {
         String sql = "SELECT * FROM [user] WHERE email = ? AND password = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -183,6 +237,41 @@ public class UserEntity {
         return false;
     }
 
+    /**
+     * Checks if the user registration details are valid.
+     *
+     * @param user the user to validate
+     * @return true if the registration is invalid, false otherwise
+     */
+    public boolean isInvalidRegistration(UserEntity user) {
+        if (user.getName() == null || user.getName().trim().isEmpty() || !isValidName(user.getName())) {
+            return true;
+        }
+        if (user.getSurname() == null || user.getSurname().trim().isEmpty() || !isValidName(user.getSurname())) {
+            return true;
+        }
+        if (user.getEmail() == null || !isValidEmail(user.getEmail())) {
+            return true;
+        }
+        return user.getPassword() == null || user.getPassword().length() < 6;
+    }
+
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return email != null && email.matches(emailRegex);
+    }
+
+    private boolean isValidName(String name) {
+        String nameRegex = "^[A-Za-z]{2,50}$";
+        return name != null && name.matches(nameRegex);
+    }
+
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        String phoneRegex = "^\\+?[0-9]{7,15}$";
+        return phoneNumber != null && phoneNumber.matches(phoneRegex);
+    }
+
+    // Getters and Setters
 
     public int getId() {
         return id;

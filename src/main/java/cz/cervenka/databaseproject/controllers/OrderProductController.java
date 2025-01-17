@@ -51,7 +51,7 @@ public class OrderProductController {
         }
     }
 
-    // Get product data for editing
+
     @GetMapping("/edit/{orderTotal}/{productName}")
     public String editProduct(@PathVariable double orderTotal, @PathVariable String productName, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
@@ -61,17 +61,17 @@ public class OrderProductController {
         }
     }
 
-    // Add or update a product in an order
+
     @PostMapping
     public String addOrUpdateProduct(@ModelAttribute OrderProductEntity orderProduct, @RequestParam int orderId, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            orderProduct.setOrderId(orderId); // Ensure the correct orderId is set
+            orderProduct.setOrderId(orderId);
             orderProduct.save(conn);
-            return "redirect:/" + orderId; // Redirect back to the order's products page
+            return "redirect:/" + orderId;
         }
     }
 
-    // Delete a product from an order
+
     @GetMapping("/delete/{orderTotal}/{productName}")
     public String deleteProduct(@PathVariable double orderTotal, @PathVariable String productName, @RequestParam int orderId) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
@@ -80,7 +80,7 @@ public class OrderProductController {
         }
     }
 
-    // Delete all products from an order
+
     @DeleteMapping("/{orderId}")
     public String deleteAllProductsByOrderId(@PathVariable int orderId) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {

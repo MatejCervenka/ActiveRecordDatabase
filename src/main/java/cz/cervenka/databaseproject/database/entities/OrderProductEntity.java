@@ -26,6 +26,14 @@ public class OrderProductEntity {
         this.stock = stock;
     }
 
+    /**
+     * Saves the current order-product relationship to the database (either inserts or updates).
+     * Uses a MERGE statement to ensure that if the order and product already exist, the quantity is updated,
+     * otherwise, a new entry is inserted.
+     *
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public void save(Connection conn) throws SQLException {
         String sql = "MERGE INTO orderProduct AS target " +
                 "USING (SELECT ? AS order_id, ? AS product_id) AS source " +
@@ -50,10 +58,25 @@ public class OrderProductEntity {
         }
     }
 
+    /**
+     * Retrieves all order-product relationships from the database.
+     *
+     * @param conn the database connection
+     * @return a list of all order-product relationships
+     * @throws SQLException if a database error occurs
+     */
     public static List<OrderProductEntity> getAll(Connection conn) throws SQLException {
         return null;
     }
 
+    /**
+     * Finds order-product relationships by the given order ID.
+     *
+     * @param orderId the order ID
+     * @param conn the database connection
+     * @return a list of order-product relationships for the given order
+     * @throws SQLException if a database error occurs
+     */
     public static List<OrderProductEntity> findByOrderId(int orderId, Connection conn) throws SQLException {
         String sql = "SELECT op.id, oP.order_id, oP.product_id, oP.quantity, p.name AS product_name, p.price AS product_price, p.stock AS stock " +
                 "FROM orderProduct oP " +
@@ -79,6 +102,15 @@ public class OrderProductEntity {
         return results;
     }
 
+    /**
+     * Finds an order-product relationship by total order price and product name.
+     *
+     * @param total the total price of the order
+     * @param productName the name of the product
+     * @param conn the database connection
+     * @return the order-product relationship matching the given total price and product name
+     * @throws SQLException if a database error occurs
+     */
     public static OrderProductEntity findByOrderTotalAndProductName(double total, String productName, Connection conn) throws SQLException {
         String sql = "SELECT oP.id, oP.order_id, oP.product_id, oP.quantity, o.totalPrice as total, p.name AS product_name, p.stock AS stock " +
                 "FROM orderProduct oP " +
@@ -105,6 +137,14 @@ public class OrderProductEntity {
         }
     }
 
+    /**
+     * Deletes an order-product relationship from the database based on the total order price and product name.
+     *
+     * @param total the total price of the order
+     * @param productName the name of the product
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public static void delete(double total, String productName, Connection conn) throws SQLException {
         String sql = "DELETE FROM orderProduct WHERE order_id = ? AND product_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -114,6 +154,13 @@ public class OrderProductEntity {
         }
     }
 
+    /**
+     * Deletes all order-product relationships for the specified order ID.
+     *
+     * @param orderId the order ID
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public static void deleteByOrderId(int orderId, Connection conn) throws SQLException {
         String sql = "DELETE FROM orderProduct WHERE order_id = ?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -123,6 +170,7 @@ public class OrderProductEntity {
     }
 
     // Getters and setters
+
     public int getOrderId() {
         return orderId;
     }

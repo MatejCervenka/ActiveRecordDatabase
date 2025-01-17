@@ -10,10 +10,18 @@ import java.sql.SQLException;
 @Service
 public class ReportService {
 
+    /**
+     * Generates a summary report containing customer order statistics,
+     * the most sold product, and the highest-value product.
+     *
+     * @param conn The database connection.
+     * @return A `SummaryReport` object containing the generated report data.
+     * @throws SQLException If a database error occurs.
+     */
     public SummaryReport generateSummaryReport(Connection conn) throws SQLException {
         SummaryReport report = new SummaryReport();
 
-        // Počet objednávek a tržby za zákazníka
+        // SQL query to get customer order statistics
         String sql1 = """
         SELECT c.name AS customer_name, COUNT(o.id) AS total_orders, SUM(o.totalPrice) AS total_revenue
             FROM customer c
@@ -21,6 +29,7 @@ public class ReportService {
             GROUP BY c.name
         """;
 
+        // Execute the first query and populate the report with customer data
         try (PreparedStatement stmt = conn.prepareStatement(sql1);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
@@ -30,7 +39,7 @@ public class ReportService {
             }
         }
 
-        // Nejprodávanější produkt
+        // SQL query to get the most sold product
         String sql2 = """
         SELECT TOP 1 p.name AS product_name, SUM(op.quantity) AS total_sold
             FROM product p
@@ -39,6 +48,7 @@ public class ReportService {
             ORDER BY total_sold DESC
         """;
 
+        // Execute the second query and populate the report with most sold product data
         try (PreparedStatement stmt = conn.prepareStatement(sql2);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
@@ -47,7 +57,7 @@ public class ReportService {
             }
         }
 
-        // Produkt s nejvyšší hodnotou
+        // SQL query to get the highest-value product
         String sql3 = """
         SELECT TOP 1 p.name AS product_name, MAX(op.quantity * p.price) AS max_value
             FROM product p
@@ -56,6 +66,7 @@ public class ReportService {
             ORDER BY max_value DESC
         """;
 
+        // Execute the third query and populate the report with highest-value product data
         try (PreparedStatement stmt = conn.prepareStatement(sql3);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
@@ -66,4 +77,5 @@ public class ReportService {
 
         return report;
     }
+
 }

@@ -1,5 +1,6 @@
 package cz.cervenka.databaseproject;
 
+import cz.cervenka.databaseproject.database.entities.CustomerEntity;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

@@ -43,6 +43,13 @@ public class OrderEntity {
     }
 
 
+    /**
+     * Fetches all orders from the database.
+     *
+     * @param conn The database connection.
+     * @return A list of all `OrderEntity` objects.
+     * @throws SQLException If a database error occurs.
+     */
     public static List<OrderEntity> getAll(Connection conn) throws SQLException {
         List<OrderEntity> order = new ArrayList<>();
         String sql = "SELECT o.id, o.customer_id, o.orderNumber, o.orderDate, o.totalPrice, c.name AS customer_name, c.surname AS customer_surname " +
@@ -65,6 +72,14 @@ public class OrderEntity {
         return order;
     }
 
+    /**
+     * Finds an order by its unique order number.
+     *
+     * @param orderNumber The unique order number.
+     * @param conn The database connection.
+     * @return The `OrderEntity` object representing the order, or `null` if no order is found.
+     * @throws SQLException If a database error occurs.
+     */
     public static OrderEntity findByOrderNumber(String orderNumber, Connection conn) throws SQLException {
         String sql = "SELECT * FROM order_list WHERE orderNumber =?";
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -85,6 +100,14 @@ public class OrderEntity {
         return null;
     }
 
+    /**
+     * Finds the details of an order by its unique order number.
+     *
+     * @param orderNumber The unique order number.
+     * @param conn The database connection.
+     * @return A list of maps containing the order details.
+     * @throws SQLException If a database error occurs.
+     */
     public static List<Map<String, Object>> findOrderDetailsByNumber(String orderNumber, Connection conn) throws SQLException {
         String sql = "SELECT * FROM order_list WHERE orderNumber = ?";
         List<Map<String, Object>> orderDetails = new ArrayList<>();
@@ -107,6 +130,14 @@ public class OrderEntity {
         return orderDetails;
     }
 
+    /**
+     * Finds orders for a specific user by user ID.
+     *
+     * @param userId The user ID.
+     * @param conn The database connection.
+     * @return A list of orders for the user.
+     * @throws SQLException If a database error occurs.
+     */
     public static List<Map<String, Object>> findOrdersByUserId(int userId, Connection conn) throws SQLException {
         String sql = """
             SELECT * FROM order_list WHERE user_id = ?
@@ -131,6 +162,14 @@ public class OrderEntity {
         return orders;
     }
 
+    /**
+     * Finds an order by its ID.
+     *
+     * @param id The order ID.
+     * @param conn The database connection.
+     * @return The `OrderEntity` object representing the order, or `null` if no order is found.
+     * @throws SQLException If a database error occurs.
+     */
     public static OrderEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT o.id, o.customer_id, o.orderNumber, o.orderDate, o.totalPrice, c.name AS customer_name, c.surname AS customer_surname " +
                 "FROM [order] o " +
@@ -154,6 +193,14 @@ public class OrderEntity {
         return null;
     }
 
+    /**
+     * Finds orders by a specific user's ID.
+     *
+     * @param userId The user ID.
+     * @param conn The database connection.
+     * @return A list of `OrderEntity` objects for the user.
+     * @throws SQLException If a database error occurs.
+     */
     public static List<OrderEntity> findByUserId(int userId, Connection conn) throws SQLException {
         List<OrderEntity> orders = new ArrayList<>();
         String sql = "SELECT o.id, o.customer_id, o.orderNumber, o.orderDate, o.totalPrice, c.name AS customer_name, c.surname AS customer_surname " +
@@ -178,7 +225,12 @@ public class OrderEntity {
         return orders;
     }
 
-
+    /**
+     * Saves the current order to the database. If the order already exists, it is updated.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
     public void save(Connection conn) throws SQLException {
         if (this.id == 0) {
             String sql = "INSERT INTO [order] (customer_id, orderNumber, orderDate, totalPrice) VALUES (?, ?, ?, ?)";
@@ -209,19 +261,31 @@ public class OrderEntity {
         }
     }
 
+    /**
+     * Deletes the order, related products and customers from the database.
+     *
+     * @param conn The database connection.
+     * @throws SQLException If a database error occurs.
+     */
     public void deleteWithProducts(Connection conn) throws SQLException {
         try (PreparedStatement deleteOrderProductsStmt = conn.prepareStatement(
                 "DELETE FROM orderProduct WHERE order_id = ?");
              PreparedStatement deleteOrderStmt = conn.prepareStatement(
-                     "DELETE FROM [order] WHERE id = ?")) {
+                     "DELETE FROM [order] WHERE id = ?");
+             PreparedStatement deleteCustomerStmt = conn.prepareStatement(
+                     "DELETE FROM customer WHERE id = ?")) {
 
             deleteOrderProductsStmt.setInt(1, this.id);
             deleteOrderProductsStmt.executeUpdate();
 
             deleteOrderStmt.setInt(1, this.id);
             deleteOrderStmt.executeUpdate();
+
+            deleteCustomerStmt.setInt(1, this.customer_id);
+            deleteCustomerStmt.executeUpdate();
         }
     }
+
 
 
 
@@ -251,49 +315,5 @@ public class OrderEntity {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public void setOrderDate(LocalDate orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public String getUser_name() {
-        return customer_name;
-    }
-
-    public void setUser_name(String customer_name) {
-        this.customer_name = customer_name;
-    }
-
-    public String getCustomer_name() {
-        return customer_name;
-    }
-
-    public void setCustomer_name(String customer_name) {
-        this.customer_name = customer_name;
-    }
-
-    public String getCustomer_surname() {
-        return customer_surname;
-    }
-
-    public void setCustomer_surname(String customer_surname) {
-        this.customer_surname = customer_surname;
-    }
-
-    public String getOrderNumber() {
-        return orderNumber;
-    }
-
-    public void setOrderNumber(String orderNumber) {
-        this.orderNumber = orderNumber;
-    }
-
-    public int getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
     }
 }

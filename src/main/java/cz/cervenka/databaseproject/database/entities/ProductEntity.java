@@ -24,6 +24,14 @@ public class ProductEntity {
         this.category_name = category_name;
     }
 
+    /**
+     * Finds a product by its ID.
+     *
+     * @param id the ID of the product
+     * @param conn the database connection
+     * @return the product with the specified ID or null if not found
+     * @throws SQLException if a database error occurs
+     */
     public static ProductEntity findById(int id, Connection conn) throws SQLException {
         String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +
                 "FROM product p " +
@@ -46,6 +54,13 @@ public class ProductEntity {
         return null;
     }
 
+    /**
+     * Retrieves all products from the database.
+     *
+     * @param conn the database connection
+     * @return a list of all products
+     * @throws SQLException if a database error occurs
+     */
     public static List<ProductEntity> getAll(Connection conn) throws SQLException {
         List<ProductEntity> products = new ArrayList<>();
         String sql = "SELECT p.id, p.name, p.price, p.stock, p.category_id, c.name AS category_name " +
@@ -67,6 +82,14 @@ public class ProductEntity {
         return products;
     }
 
+    /**
+     * Finds products by their category ID.
+     *
+     * @param categoryId the ID of the category
+     * @param conn the database connection
+     * @return a list of products belonging to the specified category
+     * @throws SQLException if a database error occurs
+     */
     public static List<ProductEntity> findByCategory(int categoryId, Connection conn) throws SQLException {
         String query = "SELECT * FROM category_products WHERE category_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -88,7 +111,12 @@ public class ProductEntity {
         }
     }
 
-
+    /**
+     * Saves the current product to the database (either inserts or updates).
+     *
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public void save(Connection conn) throws SQLException {
         String sql;
         if (this.id == 0) {
@@ -117,6 +145,12 @@ public class ProductEntity {
         }
     }
 
+    /**
+     * Deletes the current product from the database.
+     *
+     * @param conn the database connection
+     * @throws SQLException if a database error occurs
+     */
     public void delete(Connection conn) throws SQLException {
         if (this.id != 0) {
             String sql = "DELETE FROM product WHERE id = ?";
@@ -127,12 +161,18 @@ public class ProductEntity {
         }
     }
 
+    /**
+     * Validates if the requested quantity is within the available stock.
+     *
+     * @param requestedQuantity the quantity requested by the user
+     * @return true if the requested quantity is valid, otherwise false
+     */
     public boolean isQuantityValid(int requestedQuantity) {
         return requestedQuantity > 0 && requestedQuantity <= this.stock;
     }
 
-
     // Getters and setters
+
     public int getId() {
         return id;
     }

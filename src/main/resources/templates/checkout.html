@@ -19,7 +19,10 @@
     <label>
         <input type="checkbox" th:field="*{subscribe}"/> Receive emails
     </label><br/>
-    <button type="submit">Complete Purchase</button>
+    <div th:if="${error}">
+        <p style="color: red;" th:text="${error}"></p>
+    </div>
+    <button type="submit">Complete Order</button>
 </form>
 
 </body>
