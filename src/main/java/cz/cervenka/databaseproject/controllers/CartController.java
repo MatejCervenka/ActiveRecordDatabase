@@ -2,6 +2,7 @@ package cz.cervenka.databaseproject.controllers;
 
 import cz.cervenka.databaseproject.database.entities.OrderProductEntity;
 import cz.cervenka.databaseproject.database.entities.ProductEntity;
+import cz.cervenka.databaseproject.database.entities.UserEntity;
 import cz.cervenka.databaseproject.utils.DatabaseConnection;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -76,6 +77,11 @@ public class CartController {
      */
     @GetMapping
     public String viewCart(Model model, HttpSession session) {
+        UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
+        if (loggedUser == null) {
+            return "redirect:/login"; // Redirect to login page if not logged in
+        }
+
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         model.addAttribute("cart", cart);
 
@@ -148,6 +154,11 @@ public class CartController {
      */
     @PostMapping("/checkout")
     public String proceedToCheckout(HttpSession session, Model model) {
+        UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
+        if (loggedUser == null) {
+            return "redirect:/login"; // Redirect to login page if not logged in
+        }
+
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
 
         if (cart == null || cart.isEmpty()) {

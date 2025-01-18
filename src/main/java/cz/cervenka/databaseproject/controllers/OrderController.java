@@ -63,6 +63,9 @@ public class OrderController {
      */
     @GetMapping("/checkout")
     public String showCheckoutForm(Model model) {
+        if (!model.containsAttribute("error")) {
+            model.addAttribute("error", "");
+        }
         model.addAttribute("order", new OrderEntity());
         model.addAttribute("customer", new CustomerEntity());
         return "checkout";
@@ -81,8 +84,12 @@ public class OrderController {
      */
     @PostMapping("/checkout")
     public String checkout(@ModelAttribute CustomerEntity customer, @RequestParam int productId,
-                           @RequestParam int quantity, Model model) throws SQLException {
+                           @RequestParam int quantity, Model model, HttpSession session) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
+            UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
+            if (loggedUser == null) {
+                return "redirect:/login"; // Redirect to login page if not logged in
+            }
             ProductEntity product = ProductEntity.findById(productId, conn);
             if (product == null) {
                 model.addAttribute("error", "Selected product not found.");
@@ -138,7 +145,7 @@ public class OrderController {
         List<OrderProductEntity> cart = (List<OrderProductEntity>) session.getAttribute("cart");
         if (cart == null || cart.isEmpty()) {
             model.addAttribute("error", "Your cart is empty.");
-            return "checkout";
+            return "redirect:/order/checkout";
         }
 
         UserEntity loggedUser = (UserEntity) session.getAttribute("loggedUser");
@@ -146,10 +153,9 @@ public class OrderController {
             return "redirect:/login";
         }
 
-        // Validate customer details
         if (!isValidCustomer(name, surname, email, phone)) {
             model.addAttribute("error", "Invalid input. Please check your details.");
-            return "checkout";
+            return "redirect:/order/checkout";
         }
 
         try (Connection conn = dbConnection.getConnection()) {
@@ -183,11 +189,11 @@ public class OrderController {
             } catch (SQLException e) {
                 conn.rollback();
                 model.addAttribute("error", "Order failed: " + e.getMessage());
-                return "checkout";
+                return "redirect:/order/checkout";
             }
         } catch (SQLException e) {
             model.addAttribute("error", "Database error occurred. Please try again.");
-            return "checkout";
+            return "redirect:/order/checkout";
         }
     }
 

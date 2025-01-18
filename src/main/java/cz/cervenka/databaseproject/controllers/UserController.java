@@ -50,18 +50,13 @@ public class UserController {
     @PostMapping("/register")
     public String registerUser(@ModelAttribute UserEntity user, HttpSession session, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            // Validate user registration input
             if (!user.isInvalidRegistration(user)) {
-                // Hash the password before saving it to the database
                 user.setPassword(UserEntity.hashPassword(user.getPassword()));
-                // Save the user to the database
                 user.save(conn);
-                // Store the logged-in user in the session
                 session.setAttribute("loggedUser", user);
                 return "redirect:/home";
             }
         }
-        // In case of failure, display an error message on the registration page
         model.addAttribute("errorMessage", "Registration failed. Please check your input.");
         return "register";
     }
@@ -94,18 +89,14 @@ public class UserController {
     @PostMapping("/login")
     public String loginUser(@ModelAttribute("user") UserEntity user, HttpSession session, Model model) throws SQLException {
         try (Connection conn = dbConnection.getConnection()) {
-            // Hash the entered password for validation
             String hashedPassword = UserEntity.hashPassword(user.getPassword());
             user.setPassword(hashedPassword);
 
-            // Validate the user's credentials (email and password)
             if (user.isValid(conn)) {
-                // Store the logged-in user in the session
                 session.setAttribute("loggedUser", user);
                 return "redirect:/home";
             }
         }
-        // In case of invalid credentials, display an error message on the login page
         model.addAttribute("errorMessage", "Invalid email or password.");
         return "login";
     }
